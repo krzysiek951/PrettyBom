@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="user-data-page">
+    <!-- Start Hero Area -->
+    <section class="hero-area user-data-page">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8 offset-lg-2 col-md-12 col-12">
+                    <div class="hero-content">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Hero Area -->
+
+    <!-- Start PrettyBom Form -->
+    <section class="prettybom-form mb-50">
+        <div class="container">
+            <div class="inner-container col-lg-8 offset-lg-2 col-md-12 col-12">
+                <img class="shape" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+                <img class="shape2" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="content">
+                            <div class="row g-3 justify-content-center">
+                                <div class="col-12">
+                                    <form class="needs-validation" novalidate method='POST'>
+                                        <div class="row g-4">
+                                            <div class="col-12 text-center">
+                                            <h3>Just one more step</h3>
+                                            <p class="wow fadeInUp animated" data-wow-delay=".6s"
+                                               style="visibility: visible; animation-delay: 0.6s;">Fill the form to
+                                                generate PrettyBom - Your upgraded Bill of Materials</p>
+                                            </div>
+                                            {% with messages = get_flashed_messages() %}
+                                            {% if messages %}
+                                            {% for message in messages %}
+                                            <div class="col-12">
+                                                <div class="alert alert-danger m-0" role="alert">
+                                                    {{ message }}
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                            {% endif %}
+                                            {% endwith %}
+                                            <div class="col-12 form-group">
+                                                <label for="PRODUCTION_PART_KEYWORDS" class="form-label">Production
+                                                    parts unique value</label>
+                                                <input type="text" class="form-control" id="PRODUCTION_PART_KEYWORDS"
+                                                    name="PRODUCTION_PART_KEYWORDS" placeholder="">
+                                                <div class="invalid-feedback">
+                                                    Valid project ID is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group required">
+                                                <label for="MAIN_ASSEMBLY_NAME" class="form-label">Main assembly full
+                                                    name</label>
+                                                <input type="text" class="form-control" id="MAIN_ASSEMBLY_NAME"
+                                                    name="MAIN_ASSEMBLY_NAME" placeholder="" required>
+                                                <div class="invalid-feedback">
+                                                    Valid assembly name is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group required">
+                                                <label class="form-label" for="MAIN_ASSEMBLY_SETS">Main assembly
+                                                    sets</label>
+                                                <input class="form-control" type='number' min='0' max='99' step="1"
+                                                    id='MAIN_ASSEMBLY_SETS' name='MAIN_ASSEMBLY_SETS' required>
+                                                <div class="invalid-feedback">
+                                                    Main assembly quantity is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group required">
+                                                <label class="form-label" for="PART_POSITION_COLUMN">Select part
+                                                    position column</label>
+                                                <select class="form-control" id='PART_POSITION_COLUMN'
+                                                    name='PART_POSITION_COLUMN' required></select>
+                                                <div class="invalid-feedback">
+                                                    Position of column 'position' is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group required">
+                                                <label class="form-label" for="PART_QUANTITY_COLUMN">Select part
+                                                    quantity column</label>
+                                                <select class="form-control" id='PART_QUANTITY_COLUMN'
+                                                    name='PART_QUANTITY_COLUMN' required></select>
+                                                <div class="invalid-feedback">
+                                                    Position of column 'quantity' is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group required">
+                                                <label class="form-label" for="PART_NUMBER_COLUMN">Select part number
+                                                    column</label>
+                                                <select class="form-control" id='PART_NUMBER_COLUMN'
+                                                    name='PART_NUMBER_COLUMN' required></select>
+                                                <div class="invalid-feedback">
+                                                    Position of column 'number' is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group required">
+                                                <label class="form-label" for="PART_NAME_COLUMN">Select part name
+                                                    column</label>
+                                                <select class="form-control" id='PART_NAME_COLUMN'
+                                                    name='PART_NAME_COLUMN' required></select>
+                                                <div class="invalid-feedback">
+                                                    Position of column 'name' is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group">
+                                                <label class="form-label" for="JUNK_PART_KEYWORDS">Keys for setting part
+                                                    as junks</label>
+                                                <input class="form-control" type='text' id='JUNK_PART_KEYWORDS'
+                                                       name='JUNK_PART_KEYWORDS'>
+                                                <div class="invalid-feedback">
+                                                    Valid flag is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group">
+                                                <label class="form-label" for="JUNK_PART_EMPTY_FIELDS">Select column
+                                                    names which if all are empty, will set the part as junk.</label>
+                                                <select class="form-control" id='JUNK_PART_EMPTY_FIELDS'
+                                                    name='JUNK_PART_EMPTY_FIELDS' multiple></select>
+                                                <div class="invalid-feedback">
+                                                    Woops... something gone wrong.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group">
+                                                <label class="form-label" for="NORMALIZED_COLUMN">Select column for name
+                                                    normalization (Typically recommended for "Supplier" column) </label>
+                                                <select class="form-control" id='NORMALIZED_COLUMN'
+                                                        name='NORMALIZED_COLUMN' multiple></select>
+                                                <div class="invalid-feedback">
+                                                    Position of column 'name' is required.
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 form-group required sortable-container">
+                                                <label class="form-label" for="EXPORT_COLUMNS">Select columns to
+                                                    export.</label>
+                                                <input type="text" class="form-control d-none" id="EXPORT_COLUMNS" name="EXPORT_COLUMNS"
+                                                    value="" required>
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <ul id="sortable-input-list"
+                                                            class="list-group list-group-sortable-connected connected-sortable">
+                                                        </ul>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <ul id="sortable-output-list"
+                                                            class="list-group list-group-sortable-connected connected-sortable">
+                                                        </ul>
+
+                                                        <div class="invalid-feedback">
+                                                            At least one export column is required.
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 text-center mt-3">
+                                                        <button id="sortable-add-all" class="btn btn-outline-primary w-100 btn-sm"
+                                                            type="button">Add all</button>
+                                                    </div>
+                                                    <div class="col-6 text-center mt-3">
+                                                        <button id="sortable-remove-all"
+                                                            class="btn btn-outline-primary w-100 btn-sm" type="button">Remove
+                                                            all</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-12 text-center">
+                                                <button class="btn btn-primary btn-lg px-5"
+                                                    type="submit">Generate!</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End PrettyBom Form -->
+</div>
+
+<script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+<script>
+    const importedBomColumns = {{ imported_bom_columns | tojson }}
+    const exportAvailableColumns = {{ export_available_columns | tojson }}
+</script>
+<script src="{{ url_for('static', filename='js/user-data-form.js') }}"></script>
+
+
+{% endblock %}

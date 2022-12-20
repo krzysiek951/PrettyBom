@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="download-page">
+    <!-- Start Hero Area -->
+    <section class="hero-area download-page">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8 offset-lg-2 col-md-12 col-12">
+                    <div class="hero-content">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- End Hero Area -->
+
+    <!-- Start PrettyBom Form -->
+    <section class="prettybom-form mb-50">
+        <div class="container">
+            <div class="inner-container col-lg-8 offset-lg-2 col-md-12 col-12">
+                <img class="shape" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+                <img class="shape2" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="content">
+                            <div class="row g-4 g-md-5 text-center">
+                                {% with messages = get_flashed_messages() %}
+                                {% if messages %}
+                                {% for message in messages %}
+                                <div class="col-12">
+                                    <div class="alert alert-info m-0" role="alert">
+                                        {{ message }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                                {% endwith %}
+                                <div class="col-12">
+                                    <h3>Your file is ready to go!</h3>
+                                    <p class="wow fadeInUp animated" data-wow-delay=".6s"
+                                       style="visibility: visible; animation-delay: 0.6s;">
+                                        Download your upgraded Bill of Materials or start over with a new file</p>
+                                </div>
+                                <div class="col-12">
+                                    <img class="download-image"
+                                         src="{{ url_for('static', filename='images/download/astronaut.svg') }}"
+                                         alt="#">
+                                </div>
+                                <div class="col-12 col-md-6 text-md-end">
+                                    <a class="btn btn-primary px-4"
+                                       href="{{ url_for('views.download', url_filename=exported_file_path) }}">
+                                        Download
+                                        <i class="lni lni-download ms-2"></i>
+                                    </a>
+                                </div>
+                                <div class="col-12 col-md-6 text-md-start">
+                                    <a class="btn btn-outline-primary" href="{{ url_for('views.home_page') }}">Try with
+                                        another file</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

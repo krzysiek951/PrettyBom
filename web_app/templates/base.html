@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html class="no-js" lang="zxx">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <title>{% block title %} {% endblock %}</title>
+    <meta name="description" content=""/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="shortcut icon" type="image/x-icon"
+          href="{{ url_for('static', filename='images/favicon.svg') }}"/>
+
+    <!-- ========================= CSS here ========================= -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/LineIcons.3.0.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+
+</head>
+
+<body>
+<!--[if lte IE 9]>
+<p class="browserupgrade">
+    You are using an <strong>outdated</strong> browser. Please
+    <a href="https://browsehappy.com/">upgrade your browser</a> to improve
+    your experience and security.
+</p>
+<![endif]-->
+
+<!-- Preloader -->
+<div class="preloader">
+    <div class="preloader-inner">
+        <div class="preloader-icon">
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</div>
+<!-- /End Preloader -->
+
+<!-- Start Header Area -->
+<header class="header navbar-area">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-12">
+                <div class="nav-inner">
+                    <!-- Start Navbar -->
+                    <nav class="navbar navbar-expand-lg">
+                        <a class="navbar-brand" href="{{ url_for('views.home_page') }}">
+                            <!-- <img src="{{ url_for('static', filename='images/logo/white-logo.svg') }}" alt="Logo"> -->
+                            <img class="header-logo" src="{{ url_for('static', filename='images/logo/logo2.png') }}"
+                                 alt="Logo">
+                        </a>
+                        <button class="navbar-toggler mobile-menu-btn" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                                aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="toggler-icon"></span>
+                            <span class="toggler-icon"></span>
+                            <span class="toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse sub-menu-bar" id="navbarSupportedContent">
+                            <ul id="nav" class="navbar-nav ms-auto">
+                                <li class="nav-item">
+                                    <a href="{{ url_for('views.home_page') }}" class="active"
+                                       aria-label="Toggle navigation">Home</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('views.home_page') }}#benefits" class="active"
+                                       aria-label="Toggle navigation">Benefits</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('views.home_page') }}#features" class="active"
+                                       aria-label="Toggle navigation">Features</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('views.home_page') }}#compatibility" class="active"
+                                       aria-label="Toggle navigation">Compatibility</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('views.home_page') }}#example" class="active"
+                                       aria-label="Toggle navigation">Example</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ url_for('views.home_page') }}#feedback" class="active"
+                                       aria-label="Toggle navigation">Feedback</a>
+                                </li>
+                                <li class="nav-item d-lg-none d-xl-none ">
+                                    <a href="{{ url_for('views.contact') }}" class="active"
+                                       aria-label="Toggle navigation">Contact Me</a>
+                                </li>
+                            </ul>
+                        </div> <!-- navbar collapse -->
+                        <div class="button d-none d-lg-block d-xl-block ">
+                            <a href="{{ url_for('views.contact') }}" class="btn">Contact Me</a>
+                        </div>
+                    </nav>
+                    <!-- End Navbar -->
+                </div>
+            </div>
+        </div> <!-- row -->
+    </div> <!-- container -->
+</header>
+<!-- End Header Area -->
+
+{% block content %} {% endblock %}
+
+
+<!-- Start Footer Area -->
+<footer class="footer section">
+    <!-- Start Footer Top -->
+    <div class="footer-top">
+        <div class="container">
+            <div class="inner-content">
+                <div class="row">
+                    <div class="col-lg-12 col-md-12 col-12">
+                        <!-- Single Widget -->
+                        <div class="single-footer f-link text-white-50 small text-center">
+                            <a class="text-reset" href="{{ url_for('views.home_page') }}">Home</a>
+                            <span class="mx-1">·</span>
+                            <a class="text-reset" href="{{ url_for('views.home_page') }}#benefits">Benefits</a>
+                            <span class="mx-1">·</span>
+                            <a class="text-reset" href="{{ url_for('views.home_page') }}#features">Features</a>
+                            <span class="mx-1">·</span>
+                            <a class="text-reset"
+                               href="{{ url_for('views.home_page') }}#compatibility">Compatibility</a>
+                            <span class="mx-1">·</span>
+                            <a class="text-reset" href="{{ url_for('views.home_page') }}#example">Example</a>
+                            <span class="mx-1">·</span>
+                            <a class="text-reset" href="{{ url_for('views.home_page') }}#feedback">Feedback</a>
+                            <span class="mx-1">·</span>
+                            <a class="text-reset" href="{{ url_for('views.contact') }}">Contact</a>
+                        </div>
+                        <!-- End Single Widget -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--/ End Footer Top -->
+    <!-- Start Footer Bottom Area -->
+    <div class="footer-bottom-area">
+        <div class="container">
+            <div class="inner-content">
+                <div class="row align-items-center">
+                    <div class="col-12">
+                        <p class="copyright-text text-center">© 2022 PrettyBom<br>
+                            Designed and Developed by Christopher Czopkiewicz</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Footer Bottom Area -->
+</footer>
+<!--/ End Footer Area -->
+
+
+<!-- ========================= scroll-top ========================= -->
+<a href="#" class="scroll-top">
+    <i class="lni lni-arrow-up-circle"></i>
+</a>
+
+<!-- ========================= JS here ========================= -->
+<script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/wow.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>

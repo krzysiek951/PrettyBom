@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+<!-- Start Hero Area -->
+<section class="hero-area">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 offset-lg-2 col-md-12 col-12">
+                <div class="hero-content">
+                    <h1 class="wow fadeInUp" data-wow-delay=".4s">
+                        Your next must-have tool in machine production
+                    </h1>
+                    <p class="wow fadeInUp" data-wow-delay=".6s">Currently compatible with SolidWorks</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End Hero Area -->
+
+<!-- Start PrettyBom Form -->
+<section class="prettybom-form">
+    <div class="container">
+        <div class="inner-container col-lg-8 offset-lg-2 col-md-12 col-12">
+            <img class="shape" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+            <img class="shape2" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+            <div class="row">
+                <div class="col-12">
+                    <div class="content">
+                        <div class="row g-3 justify-content-center">
+                            <div class="col-12">
+                                <form class="needs-validation" novalidate method='POST' enctype=multipart/form-data>
+                                    <div class="row g-5">
+
+                                        {% with messages = get_flashed_messages() %}
+                                        {% if messages %}
+                                        {% for message in messages %}
+
+                                        <div class="col-12">
+                                            <div class="alert alert-danger m-0" role="alert">
+                                                {{ message }}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                        {% endif %}
+                                        {% endwith %}
+                                        <div class="col-12">
+                                            <h5>Select the file with exported Bill of Materials</h5>
+                                            <h6 class="fw-light">Only .csv accepted</h6>
+                                            <!-- <label for="file" class="form-label">Select file to generate data</label> -->
+                                            <div class="mt-3">
+                                                <input class="form-control" type="file" id="file" name="file" required>
+                                                <div class="invalid-feedback">
+                                                    File to generate data is required.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <h5>Specify the position of the Bill of Materials header</h5>
+                                            <!-- <label class="form-label" for="HEADER_POSITION">BOM header position</label> -->
+                                            <div class="mt-3">
+                                                <select class="form-control" id='HEADER_POSITION' name='HEADER_POSITION'
+                                                        required>
+                                                    <option value="top">top</option>
+                                                    <option value="bottom">bottom</option>
+                                                </select>
+                                                <div class="invalid-feedback">
+                                                    Header position is required.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 text-center">
+                                            <button class="btn btn-primary btn-lg px-5" type="submit">Next</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- End PrettyBom Form -->
+
+<!-- Start Benefits Area -->
+<section class="benefits section" id="benefits">
+    <img class="shape-top" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+    <img class="shape" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="section-title">
+                    <h3 class="wow zoomIn" data-wow-delay=".2s">Benefits</h3>
+                    <h2 class="wow fadeInUp" data-wow-delay=".4s">What do you get with PrettyBom</h2>
+                    <p class="wow fadeInUp" data-wow-delay=".6s">Learn how our tool can benefit your projects.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row benefits-grid">
+            <!-- Start Single benefit -->
+            <div class="single-benefit wow fadeInUp d-flex flex-row align-items-center" data-wow-delay=".2s">
+                <div class="me-4">
+                    <div class="list-icon">
+                        <img class="benefit-icon"
+                             src="{{ url_for('static', filename='icons/benefits/wait-time.png') }}"/>
+                    </div>
+                </div>
+                <div>
+                    <h3>Reduce machine production downtime</h3>
+                    <p>In machine manufacturing, deadlines are always tight, and any mistake can be costly and extend
+                        the production time significantly, sometimes even by months! With PrettyBom you can eliminate
+                        one of the sources of that delays!</p>
+                </div>
+            </div>
+            <!-- End Single benefit -->
+            <!-- Start Single benefit -->
+            <div class="single-benefit wow fadeInUp d-flex flex-row align-items-center" data-wow-delay=".4s">
+                <div class="me-4">
+                    <div class="list-icon">
+                        <img class="benefit-icon"
+                             src="{{ url_for('static', filename='icons/benefits/internet.png') }}"/>
+                    </div>
+                </div>
+                <div>
+                    <h3>Significantly speed up parts list creation</h3>
+                    <p>Just export the Bill of Materials from your top assembly (like machine layout) and import it to
+                        our tool. And it's almost done! All you will need now is some cosmetic changes and data
+                        verification.</p>
+                </div>
+            </div>
+            <!-- End Single benefit -->
+            <!-- Start Single List -->
+            <div class="single-benefit wow fadeInUp d-flex flex-row align-items-center" data-wow-delay=".2s">
+                <div class="me-4">
+                    <div class="list-icon">
+                        <img class="benefit-icon"
+                             src="{{ url_for('static', filename='icons/benefits/question.png') }}"/>
+                    </div>
+                </div>
+                <div>
+                    <h3>Stop bothering that you have calculated all the parts quantity correctly.</h3>
+                    <p>Have a hundreds of parts needed to be ordered to produce the machine and a feeling that you could
+                        have made a mistake while creating the Bill
+                        of materials? Relax... If all the parts were on your 3D model, now you can be sure that it will
+                        be ordered!
+                    </p>
+                </div>
+            </div>
+            <!-- End Single List -->
+            <!-- Start Single benefit -->
+            <div class="single-benefit wow fadeInUp d-flex flex-row align-items-center" data-wow-delay=".4s">
+                <div class="me-4">
+                    <div class="list-icon">
+                        <img class="benefit-icon" src="{{ url_for('static', filename='icons/benefits/oops.png') }}"/>
+                    </div>
+                </div>
+                <div>
+                    <h3>Avoid making mistakes when creating a parts list</h3>
+                    <p>Oops! There were supposed to be three sets of this subassembly and I ordered only one... Now we
+                        will have to wait another month for missing parts... <b>Forget it!</b>
+                    </p>
+                </div>
+            </div>
+            <!-- End Single benefit -->
+        </div>
+    </div>
+</section>
+<!-- End benefits Area -->
+
+
+<div id="features" class="features section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="section-title">
+                    <h3 class="wow zoomIn" data-wow-delay=".2s">Features</h3>
+                    <h2 class="wow fadeInUp" data-wow-delay=".4s">PrettyBom Features</h2>
+                    <p class="wow fadeInUp" data-wow-delay=".6s">As a result of processing your .csv file, you will
+                        receive a Bill of Materials in .xlsx (Excel) format. Learn what
+                        functionalities your BOM gains.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row features-grid">
+
+
+            <div class="single-feature wow fadeInUp d-flex flex-column h-100 align-items-center" data-wow-delay=".2s">
+                <div class="f-icon">
+                    <img class="benefit-icon"
+                         src="{{ url_for('static', filename='icons/features/order-delivery.png') }}"/>
+                </div>
+                <h4 class="text-title">Part sets and quantity to order detection</h4>
+                <p>Our tool will go through every BOM position to tell you how many parts you need to order.</p>
+            </div>
+
+            <div class="single-feature wow fadeInUp d-flex flex-column h-100 align-items-center" data-wow-delay=".4s">
+                <div class="f-icon">
+                    <img class="benefit-icon" src="{{ url_for('static', filename='icons/features/filter.png') }}"/>
+                </div>
+                <h4 class="text-title">Part type detection</h4>
+                <p>Our tool will automatically detect your parts as: production, purchased, fastener or junk.</p>
+            </div>
+
+            <div class="single-feature wow fadeInUp d-flex flex-column h-100 align-items-center" data-wow-delay=".4s">
+                <div class="f-icon">
+                    <img class="benefit-icon"
+                         src="{{ url_for('static', filename='icons/features/sorting.png') }}"/>
+                </div>
+                <h4 class="text-title">Advanced sorting</h4>
+                <p>Your Bill of Materials will be neat and clean by sorting alphabetically and organizing parts
+                    in the following order: production, purchased, fastener, junk.</p>
+            </div>
+
+            <div class="single-feature wow fadeInUp d-flex flex-column h-100 align-items-center" data-wow-delay=".4s">
+                <div class="f-icon">
+                    <img class="benefit-icon"
+                         src="{{ url_for('static', filename='icons/features/timing-belt.png') }}"/>
+                </div>
+                <h4 class="text-title">Part and assembly detection</h4>
+                <p>You will filter your Bill of Materials with ease with additional fields: part and assembly.</p>
+            </div>
+
+            <div class="single-feature wow fadeInUp d-flex flex-column h-100 align-items-center" data-wow-delay=".2s">
+                <div class="f-icon">
+                    <img class="benefit-icon" src="{{ url_for('static', filename='icons/features/integrity.png') }}"/>
+                </div>
+                <h4 class="text-title">Name normalization</h4>
+                <p>Your Bill of Materials probably includes a part supplier where the name might be Elesa Ganter or
+                    Elesa-Ganter. The name normalization function will allow you to easily unify that names.</p>
+            </div>
+
+            <div class="single-feature wow fadeInUp d-flex flex-column h-100 align-items-center" data-wow-delay=".6s">
+                <div class="f-icon">
+                    <img class="benefit-icon"
+                         src="{{ url_for('static', filename='icons/features/motion-sensor.png') }}"/>
+                </div>
+                <h4 class="text-title">Parent assembly detection</h4>
+                <p>Your Bill of Materials can now be filtered by parent assembly, so you can easily check if everything
+                    you need to order for any assembly is included.</p>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+
+<section class="software section" id="compatibility">
+    <img class="shape-bottom" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-5 offset-lg-1 col-12">
+                <div class="content">
+                    <h2>
+                        <span>COMPATIBILITY
+                        </span>
+                        Already compatible with:
+                    </h2>
+                    <p>Other platforms will be available soon</p>
+                </div>
+                <div class="image">
+                    <img class="shape" src="{{ url_for('static', filename='images/shapes/shape.png') }}" alt="#">
+                </div>
+            </div>
+            <div class="col-lg-5 col-12  align-self-center">
+                <div class="image">
+                    <img src="{{ url_for('static', filename='images/software/Solidworks-Logo.png') }}" alt="#">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="example" class="example section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="section-title">
+                    <h3 class="wow zoomIn" data-wow-delay=".2s">Example</h3>
+                    <h2 class="wow fadeInUp" data-wow-delay=".4s">Check how PrettyBom works</h2>
+                    <p class="wow fadeInUp" data-wow-delay=".6s">Learn how PrettyBom works with our example</p>
+                </div>
+            </div>
+        </div>
+        <div class="row g-5">
+            <div class="col-12 col-lg-4">
+                <h2 class="text-center mb-20 table-title">Before</h2>
+                {% include 'example-before.html' %}
+            </div>
+            <div class="col-12 col-lg-8">
+                <h2 class="text-center mb-20 table-title">After</h2>
+                {% include 'example-after.html' %}
+            </div>
+        </div>
+
+        <div class="row example-description">
+            <div class="col-12 col-lg-6 d-flex">
+                <div class="inner-content">
+                    <div class="row align-items-center">
+                        <div class="col-12">
+                            <div class="text text-center">
+                                <h2>Check if you have discovered all the Features</h2>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-15">
+                            <ul>
+                                <li><b>A new property "Parent assembly"</b><br/>
+                                    Now you can easily filter your BOM by parent assembly to get BOM for every assembly.
+                                    Main assembly, which is the one, from which Bill of Materials was exported is
+                                    M-2022-00 Layout, quantity 1.
+                                </li>
+                                <li>
+                                    <b>A new property "File type"</b><br/>
+                                    File type can be set as assembly or part. This gives you the ability to easily
+                                    filter your BOM to get only production parts.
+                                </li>
+                                <li>
+                                    <b>A new property "Type"</b><br/>
+                                    Type can be set as production, purchased, fasteners and junks. In our example
+                                    production parts were detected by the "M-2022" keyword.
+                                </li>
+                                <li>
+                                    <b>A new property "Sets"</b><br/>
+                                    Sets gives you the information how many sets of given part need to be ordered.
+                                </li>
+                                <li>
+                                    <b>A new property "To order"</b><br/>
+                                    To order lets you know the total parts number needed to be ordered.
+                                </li>
+                                <li>
+                                    <b>Supplier name unification</b><br/>
+                                    Originally supplier column had different names for same supplier like Elesa-Ganter
+                                    and ELESA GANTER. Now everything has been unified.
+                                </li>
+                                <li>
+                                    <b>Advanced sorting</b><br/>
+                                    Whole Bill of Material was sorted with following order: production, purchased,
+                                    fastener, junks. PrettyBom also takes into account the nesting of the parts!.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 d-flex example-download">
+                <div class="inner-content">
+                    <img class="example-shape-top" src="{{ url_for('static', filename='images/shapes/shape.png') }}"
+                         alt="#">
+                    <img class="example-shape-bottom" src="{{ url_for('static', filename='images/shapes/shape.png') }}"
+                         alt="#">
+                    <div class="row h-100 align-content-center">
+                        <div class="col-12">
+                            <div class="text text-center">
+                                <h2>Ready To Get Started?
+                                    <br><span>Try It Yourself.</span>
+                                </h2>
+                                <p class="mt-10">Download sample file to check how PrettyBom works by yourself!</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="button d-flex justify-content-center mt-30">
+                                <a href="{{ url_for('static', filename='sample/M-2022-00 Layout [PrettyBom].csv') }}" class="btn">
+                                    Download sample file
+                                    <i class="lni lni-download ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<section id="feedback" class="feedback section">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="section-title">
+                    <h3 class="wow zoomIn" data-wow-delay=".2s">Feedback</h3>
+                    <h2 class="wow fadeInUp" data-wow-delay=".4s">Have a cool idea to develop this product?
+                    </h2>
+                    <p class="wow fadeInUp" data-wow-delay=".6s">Have some troubles with our tool? Or have an idea to
+                        add some functionalities? Feel free to contact me!</p>
+                </div>
+                <div class="feedback-button mt-3">
+                    <a class="btn btn-primary px-4" href="{{ url_for('views.contact') }}">Contact me</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+</div>
+</div>
+<script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
+{% endblock %}
