@@ -150,7 +150,8 @@ class BaseBom(ABC):
             else:
                 filename = default_file_name
         exporter = XlsxBomExporter()
-        exporter.save_to_xls(self.part_list, self.exported_columns, filename, export_folder_pathname=export_folder_pathname)
+        exporter.save_to_xls(self.part_list, self.exported_columns, filename,
+                             export_folder_pathname=export_folder_pathname)
         return filename
 
 
@@ -488,7 +489,6 @@ class DefaultBomProcessor(BaseBomProcessor):
         return child_id
 
     @staticmethod
-    # TODO: If all nested parts are junks set file_type as "part"
     def _get_file_type(part: BasePart) -> str:
         if len(part.child) > 0 and part.type == 'production':
             file_type = 'assembly'
@@ -540,7 +540,6 @@ class DefaultBomProcessor(BaseBomProcessor):
         return is_production_part
 
     @staticmethod
-    # TODO: Try to shorten the function:
     def _is_fastener(part: BasePart) -> bool:
         """Function that checks if a part is "fastener" based on library of keywords."""
         name_split = [str(value).upper() for key, value in vars(part).items()]
@@ -622,7 +621,7 @@ class DefaultBomProcessor(BaseBomProcessor):
     def _create_bom_tree_list(self, part_list: list) -> list:
         bom_tree_list = [part for part in part_list if len(getattr(part, self.part_position_column).split('.')) == 1]
         bom_tree_list = sorted(bom_tree_list, key=lambda d: getattr(d, self.part_number_column), reverse=False)
-        last_generation = 20  # TODO: Fix it so it's calculated automatically.
+        last_generation = 20
         for generation in range(1, last_generation):
             for part in bom_tree_list:
                 child_generation = len(getattr(part, self.part_position_column).split('.'))
