@@ -363,7 +363,8 @@
                         </div>
                         <div class="col-12">
                             <div class="button d-flex justify-content-center mt-30">
-                                <a href="{{ url_for('static', filename='sample/M-2022-00 Layout [PrettyBom].csv') }}" class="btn">
+                                <a class="btn"
+                                   href="{{ url_for('static', filename='sample/M-2022-00 Layout [PrettyBom] v.1.0.0.csv') }}">
                                     Download sample file
                                     <i class="lni lni-download ms-2"></i>
                                 </a>
@@ -397,7 +398,5 @@
 </section>
 
 
-</div>
-</div>
 <script src="{{ url_for('static', filename='js/form-validation.js') }}"></script>
 {% endblock %}
