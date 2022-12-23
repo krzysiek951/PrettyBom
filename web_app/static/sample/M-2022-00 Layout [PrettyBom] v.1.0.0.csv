@@ -1,0 +1,22 @@
+1.18,1,LHBBW20,Linear guide,MISUMI
+1.17,5,M-2022-01-05,Guide,
+1.16,5,M-2022-01-02,Holder,
+1.15,1,M-2022-01-03,Bracket,
+1.14,3,M-2022-01-04,Plate,
+1.13,2,M-2022-01-01,Cover,
+1.12,1,KS 10,Switch head,ACE
+1.11,1,KM 10,Lock nut M10x1,Ace
+1.10,1,DIN 912 M4 x 16,Hexagon head screws,NORELEM
+1.9,6,DIN 125 - A 6.4,Washer,Norelem
+1.8,4,DIN 912 M8 x 10,Hexagon head screws,Norelem
+1.7,2,DIN 912 M6 x 10,Hexagon head screws,NORELEM
+1.6,4,DIN 125 - A 8.5,Washer,Norelem
+1.5 ,3,DIN 912 M6 x 10,Hexagon head screws,NORELEM
+1.4,1,BES01PF,Proximity switch,BALLUFF
+1.3,1,513011 LV.FO-60-14-M8x43,Levelling elements,ELESA-GANTER
+1.2,1,424021 CFH.50 CH-6,Hinges,Elesa - Ganter
+1.1.2,1,Some other junkie part, Inside Festo GRLA,None
+1.1.1,1,Some junkie part, Inside Festo GRLA,None
+1.1,1,193 138,Non-return valve GRLA,FESTO
+1,3,M-2022-01-00,Assembly module,
+Pos.,Qty.,Part number,Part name,Supplier
