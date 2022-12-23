@@ -3,8 +3,7 @@ from flask import session, render_template, flash, request, redirect, url_for, s
 from werkzeug.utils import secure_filename
 from .models import DefaultBomManager
 
-from flask_mail import Message
-from web_app import mail
+from flask_mail import Message, Mail
 
 bp = Blueprint('views', __name__)
 
@@ -119,6 +118,8 @@ def download(url_filename):
 
 @bp.route('/contact', methods=['GET', 'POST'])
 def contact():
+    mail = Mail()
+    mail.init_app(current_app)
     if request.method == 'POST':
         print(request.form)
         msg = Message()
