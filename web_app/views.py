@@ -1,5 +1,6 @@
 import os
-from flask import session, render_template, flash, request, redirect, url_for, send_from_directory, current_app, Blueprint
+from flask import session, render_template, flash, request, redirect, url_for, send_from_directory, current_app, \
+    Blueprint
 from werkzeug.utils import secure_filename
 from .models import DefaultBomManager
 
@@ -19,9 +20,8 @@ def required(field, message):
     return field
 
 
-@bp.route('/', defaults={'sample_url_filename': None}, methods=['GET', 'POST'])
-@bp.route('/<path:sample_url_filename>', methods=['GET', 'POST'])
-def home_page(sample_url_filename):
+@bp.route('/', methods=['GET', 'POST'])
+def home_page():
     if request.method == 'POST':
         """
         check if the post request has the file part
@@ -43,7 +43,6 @@ def home_page(sample_url_filename):
             file.save(imported_bom_path_name)
 
             imported_bom_header_position = request.form['HEADER_POSITION']
-
             user_bom_manager = DefaultBomManager()
             user_bom = user_bom_manager.create_bom()
             user_bom.import_csv(filepath=imported_bom_path_name, bom_header_position=imported_bom_header_position)
@@ -53,9 +52,6 @@ def home_page(sample_url_filename):
         else:
             flash('Invalid file type. Bill of materials should have a csv extension.')
             return redirect(request.url)
-    if sample_url_filename:
-        sample_bom_directory = os.path.join(os.getcwd(), 'static/sample/M-2022-00 Layout [PrettyBom].csv')
-        return send_from_directory(sample_bom_directory, sample_url_filename, as_attachment=True)
 
     return render_template('index.html')
 
