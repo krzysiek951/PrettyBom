@@ -1,7 +1,9 @@
-from config import config
 import os
+
 from flask import Flask
 from flask_session.__init__ import Session
+
+from config import config
 from .models import DefaultBomManager
 
 
@@ -15,6 +17,9 @@ def create_app(env=None):
     app.config.from_pyfile('config.py', silent=True)
 
     Session(app)
+
+    os.makedirs(app.config['IMPORTS_FOLDER'], exist_ok=True)
+    os.makedirs(app.config['EXPORTS_FOLDER'], exist_ok=True)
 
     from . import views
     app.register_blueprint(views.bp)
