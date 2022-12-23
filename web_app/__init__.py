@@ -3,9 +3,6 @@ import os
 from flask import Flask
 from flask_session.__init__ import Session
 from .models import DefaultBomManager
-from flask_mail import Mail
-
-mail = Mail()
 
 
 def create_app(env=None):
@@ -17,7 +14,6 @@ def create_app(env=None):
         app.config.from_object(config[env])
     app.config.from_pyfile('config.py', silent=True)
 
-    mail.init_app(app)
     Session(app)
 
     from . import views
