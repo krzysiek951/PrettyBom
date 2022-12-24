@@ -18,9 +18,6 @@ def create_app(env=None):
 
     Session(app)
 
-    os.makedirs(app.config['IMPORTS_FOLDER'], exist_ok=True)
-    os.makedirs(app.config['EXPORTS_FOLDER'], exist_ok=True)
-
     from . import views
     app.register_blueprint(views.bp)
 
