@@ -1,10 +1,11 @@
 import os
+
 from flask import session, render_template, flash, request, redirect, url_for, send_from_directory, current_app, \
     Blueprint
-from werkzeug.utils import secure_filename
-from .models import DefaultBomManager
-
 from flask_mail import Message, Mail
+from werkzeug.utils import secure_filename
+
+from .models import DefaultBomManager
 
 bp = Blueprint('views', __name__)
 
@@ -39,6 +40,7 @@ def home_page():
         if file and is_allowed_file(file.filename):
             filename = secure_filename(file.filename)
             imported_bom_path_name = os.path.join(current_app.config['IMPORTS_FOLDER'], filename)
+            os.makedirs(current_app.config['IMPORTS_FOLDER'], exist_ok=True)
             file.save(imported_bom_path_name)
 
             imported_bom_header_position = request.form['HEADER_POSITION']
@@ -90,6 +92,7 @@ def user_data():
         if '_flashes' in session:
             return redirect(request.url)
 
+        os.makedirs(current_app.config['EXPORTS_FOLDER'], exist_ok=True)
         exported_filename = user_bom.export_to_xlsx(current_app.config['EXPORTS_FOLDER'])
         user_bom.undo_processing()
         session['exported_filename'] = exported_filename
