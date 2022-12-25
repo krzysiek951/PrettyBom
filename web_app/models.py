@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import copy
-from abc import ABC, abstractmethod
-import os
-import pandas as pd
 import math
+import os
+from abc import ABC, abstractmethod
+
+import pandas as pd
+
 from web_app.assets.data.data import *
 from web_app.functions import *
-import re
 
 
 class BaseBomManager(ABC):
@@ -171,13 +172,11 @@ class DefaultBom(BaseBom):
         self.part_list.append(part)
         return part
 
-    # def process_part_list(self) -> None:
     def process_part_list(self):
         try:
             self.bom_processor.run_processing(self.part_list)
             self.part_list = self.bom_processor.processed_part_list
         except ValueError as error:
-            # print(error)
             return error
 
     def undo_processing(self) -> None:
@@ -395,12 +394,16 @@ class DefaultBomProcessor(BaseBomProcessor):
         self.normalized_columns = kwargs.get('normalized_columns', '')
         self.parts_sorting = kwargs.get('parts_sorting', '')
         self.processor_validator: BomProcessorValidator | None = None
+        self.part_position_delimiter: str | None = None
 
     def run_processing(self, part_list) -> None:
         print('\n###### PROCESSOR MODULE ######')
         print('Part list processing started...')
-        self.validate_part_list()
+
         self.initial_part_list = copy.deepcopy(part_list)
+        self.run_validation()
+
+        self.part_position_delimiter = self.processor_validator.part_position_delimiter
         new_part_list = []
         for part in part_list:
             self._set_part_extra_keys(part)
@@ -410,16 +413,14 @@ class DefaultBomProcessor(BaseBomProcessor):
         self.processed_part_list = processed_part_list
         print('Success! Part list processing finished.\n')
 
-    def validate_part_list(self):
+    def run_validation(self):
         print('\n###### VALIDATOR MODULE ######')
         print('Part list validation started...')
-        # self.processor_validator = BomProcessorValidator()
-        self.processor_validator = BomProcessorValidator()
-        validator = self.processor_validator
-        part_list = self.initial_part_list
+
+        validator = self.processor_validator = BomProcessorValidator()
 
         if not validator.is_part_list_valid(
-                part_list,
+                self.initial_part_list,
                 part_position_column=self.part_position_column,
                 part_quantity_column=self.part_quantity_column,
         ):
@@ -431,9 +432,9 @@ class DefaultBomProcessor(BaseBomProcessor):
 
             error_messages = []
             if validator.invalid_position_value_parts:
-                error_messages.append(get_error_message(part_list, validator.invalid_position_value_parts))
+                error_messages.append(get_error_message(self.initial_part_list, validator.invalid_position_value_parts))
             if validator.invalid_quantity_value_parts:
-                error_messages.append(get_error_message(part_list, validator.invalid_quantity_value_parts))
+                error_messages.append(get_error_message(self.initial_part_list, validator.invalid_quantity_value_parts))
             raise ValueError('\n'.join(error_messages) + '\nProcessing cancelled.')
         print('Success! Part list validation finished.\n')
 
@@ -463,9 +464,9 @@ class DefaultBomProcessor(BaseBomProcessor):
         return parent_name
 
     def _get_parent_ids(self, part: BasePart) -> list:
-        position_split = getattr(part, self.part_position_column).split('.')
+        position_split = getattr(part, self.part_position_column).split(self.part_position_delimiter)
         parents_count = len(position_split) - 1
-        parents_id = ['.'.join(position_split[:(num + 1)]) for num in range(parents_count)]
+        parents_id = [self.part_position_delimiter.join(position_split[:(num + 1)]) for num in range(parents_count)]
         return parents_id
 
     def _get_parent(self, part: BasePart) -> BasePart:
@@ -480,12 +481,14 @@ class DefaultBomProcessor(BaseBomProcessor):
         return parent
 
     def _get_child_ids(self, part: BasePart) -> list:
-        position_split = getattr(part, self.part_position_column).split('.')
+        position_split = getattr(part, self.part_position_column).split(self.part_position_delimiter)
         part_len = len(position_split)
         child_len = part_len + 2
         child_id = [getattr(item, self.part_position_column) for item in self.initial_part_list if
-                    len(getattr(item, self.part_position_column).split('.')) + 1 == child_len and
-                    getattr(item, self.part_position_column).split('.')[:part_len] == position_split]
+                    len(getattr(item, self.part_position_column).split(
+                        self.part_position_delimiter)) + 1 == child_len and
+                    getattr(item, self.part_position_column).split(self.part_position_delimiter)[
+                    :part_len] == position_split]
         return child_id
 
     @staticmethod
@@ -601,30 +604,32 @@ class DefaultBomProcessor(BaseBomProcessor):
     def _normalize_name(self, part: BasePart) -> BasePart:
         for key in self.normalized_columns:
             if hasattr(part, key):
-                normalized_name = normalize_string(getattr(part, key)).title()
+                normalized_name = normalize_string(getattr(part, key))
                 setattr(part, key, normalized_name)
         return part
 
     def _get_sub_bom(self, part: BasePart, part_list: list) -> list:
-        name_split = getattr(part, self.part_position_column).split('.')
+        name_split = getattr(part, self.part_position_column).split(self.part_position_delimiter)
         part_len = len(getattr(part, "parent")) + 1
         child_len = len(getattr(part, "parent")) + 2
         parts_order = "pfjabcdeghiklmnoqrstuvwxyz"
         # implemented for ordering parts as: "production, purchased, fastener, junk
         sub_bom = [item for item in part_list if len(getattr(item, "parent")) + 1 == child_len and
-                   getattr(item, self.part_position_column).split('.')[:part_len] == name_split]
+                   getattr(item, self.part_position_column).split(self.part_position_delimiter)[
+                   :part_len] == name_split]
         sub_bom = sorted(sub_bom,
                          key=lambda word: ([parts_order.index(c) for c in word.type],
                                            getattr(word, self.part_number_column)), reverse=True)
         return sub_bom
 
     def _create_bom_tree_list(self, part_list: list) -> list:
-        bom_tree_list = [part for part in part_list if len(getattr(part, self.part_position_column).split('.')) == 1]
+        bom_tree_list = [part for part in part_list if
+                         len(getattr(part, self.part_position_column).split(self.part_position_delimiter)) == 1]
         bom_tree_list = sorted(bom_tree_list, key=lambda d: getattr(d, self.part_number_column), reverse=False)
         last_generation = 20
         for generation in range(1, last_generation):
             for part in bom_tree_list:
-                child_generation = len(getattr(part, self.part_position_column).split('.'))
+                child_generation = len(getattr(part, self.part_position_column).split(self.part_position_delimiter))
                 if child_generation == generation:
                     child_bom = sorted(self._get_sub_bom(part, part_list), key=lambda d: self.part_number_column,
                                        reverse=False)
@@ -635,34 +640,49 @@ class DefaultBomProcessor(BaseBomProcessor):
 
 class BomProcessorValidator:
     def __init__(self):
-        self.invalid_position_value_parts = []
-        self.invalid_quantity_value_parts = []
+        self.invalid_position_value_parts: list = []
+        self.invalid_quantity_value_parts: list = []
+        self.part_position_delimiter: str | None = None
 
-    def is_part_list_valid(self, part_list, part_position_column, part_quantity_column):
-        validators_data = []
+    def is_part_list_valid(self, part_list: list, part_position_column: str, part_quantity_column: str) -> bool:
+        """  """
+        validators = []
+
         for part in part_list:
-            validators = [
-                self.is_digit_column_valid(part, part_position_column, self.invalid_position_value_parts),
-                self.is_digit_column_valid(part, part_quantity_column, self.invalid_quantity_value_parts),
+            part_validators = [
+                self.is_position_delimiter_unique(part, part_position_column),
+                self.is_quantity_a_number(part, part_quantity_column),
             ]
-            is_part_valid = all(validators)
-            validators_data.append(is_part_valid)
-        is_part_list_valid = all(validators_data)
-        return is_part_list_valid
+            is_part_valid = all(part_validators)
+            validators.append(is_part_valid)
 
-    @staticmethod
-    def is_digit_column_valid(part, column_name, invalid_export_list):
+        return all(validators)
+
+    def is_position_delimiter_unique(self, part: BasePart, part_position_column: str) -> bool:
+        """ Returns true if position column has at least one non-digit unique delimiter for all parts. """
+        try:
+            position_delimiter = get_position_delimiter(getattr(part, part_position_column))
+            if not position_delimiter or position_delimiter is self.part_position_delimiter:
+                return True
+            elif position_delimiter and not self.part_position_delimiter:
+                self.part_position_delimiter = position_delimiter
+                return True
+            else:
+                self.invalid_position_value_parts.append(part)
+                return False
+        except ValueError:
+            self.invalid_position_value_parts.append(part)
+            return False
+
+    def is_quantity_a_number(self, part: BasePart, column_name: str) -> bool:
         is_data_valid = False
-        part_position_split = getattr(part, column_name).split('.')
+        part_position_split = getattr(part, column_name).split(self.part_position_delimiter)
         for position in part_position_split:
             is_data_valid = position.isdigit()
             if not is_data_valid:
-                invalid_export_list.append(part)
+                self.invalid_quantity_value_parts.append(part)
                 return is_data_valid
         return is_data_valid
-
-    def is_quantity_column_valid(self):
-        pass
 
 
 class BaseBomExporter(ABC):
