@@ -6,6 +6,7 @@ from flask_mail import Message, Mail
 from werkzeug.utils import secure_filename
 
 from .models import DefaultBomManager
+from .typing import *
 
 bp = Blueprint('views', __name__)
 
@@ -43,7 +44,7 @@ def home_page():
             os.makedirs(current_app.config['IMPORTS_FOLDER'], exist_ok=True)
             file.save(imported_bom_path_name)
 
-            imported_bom_header_position = request.form['HEADER_POSITION']
+            imported_bom_header_position: HeaderPositions = request.form['HEADER_POSITION']
             user_bom_manager = DefaultBomManager()
             user_bom = user_bom_manager.create_bom()
             user_bom.import_csv(filepath=imported_bom_path_name, bom_header_position=imported_bom_header_position)
