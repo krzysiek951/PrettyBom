@@ -72,7 +72,19 @@
                                             </div>
                                         </div>
                                         <div class="col-12 text-center">
-                                            <button class="btn btn-primary btn-lg px-5" type="submit">Next</button>
+                                            <div class="row g-3">
+                                                <div class="col-12 col-md-6 text-md-end">
+                                                    <button class="btn btn-primary btn-lg px-5" type="submit">
+                                                        Next
+                                                    </button>
+                                                </div>
+                                                <div class="col-12 col-md-6 text-md-start">
+                                                    <a class="btn btn-lg color-blue"
+                                                       href="{{ url_for('views.home_page') }}#example" role="button">
+                                                        Try with example
+                                                    </a>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </form>

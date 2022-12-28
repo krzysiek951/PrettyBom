@@ -1,31 +1,44 @@
-import unittest
+import pytest
 
-from web_app.functions import normalize_string
-
-
-class TestNormalizeString(unittest.TestCase):
-    def test_normalize_string(self):
-        """
-        Test
-        """
-        data = ['Elesa-ganter', 'elesa ganter', 'elesa-ganter', 'elesa - ganter', 'ELESA-GANTER']
-        expected = ['Elesa Ganter', 'Elesa Ganter', 'Elesa Ganter', 'Elesa Ganter', 'Elesa Ganter']
-        result = [normalize_string(x.title()) for x in data]
-        self.assertEqual(result, expected)
+from web_app.functions import (
+    normalize_string,
+    get_position_delimiter)
 
 
-if __name__ == '__main__':
-    unittest.main()
+class TestGetPositionDelimiter:
+    def test_common_csv_delimiters(self):
+        """ Test whether the delimiter was found properly. """
+        samples = {
+            '1,1': ',',
+            '1.1': '.',
+            '1:1': ':',
+            '1-1': '-',
+            '1/1': '/',
+            '1': None,
+            '1.1.1': '.',
+        }
+        for sample, expected in samples.items():
+            result = get_position_delimiter(sample)
+            assert result == expected
 
-    # .assertEqual(a, b) -- a == b
-    # .assertTrue(x) -- bool(x) is True
-    # .assertFalse(x)
-    # bool(x) is False
-    # .assertIs(a, b)
-    # a is b
-    # .assertIsNone(x)
-    # x is None
-    # .assertIn(a, b)
-    # a in b
-    # .assertIsInstance(a, b)
-    # isinstance(a, b)
+    def test_bad_data(self):
+        """ Test whether the bad data returns exception. """
+        broken_data = ['1,1.1', 'lorem ipsum']
+        for sample in broken_data:
+            with pytest.raises(ValueError):
+                get_position_delimiter(sample)
+
+
+def test_normalize_string():
+    """ Test whether the string was normalized properly. """
+    samples = {
+        'Elesa-ganter': 'Elesa Ganter',
+        '   Elesa-ganter   ': 'Elesa Ganter',
+        'elesa ganter': 'Elesa Ganter',
+        'elesa-ganter': 'Elesa Ganter',
+        'elesa - ganter': 'Elesa Ganter',
+        'ELESA-GANTER': 'Elesa Ganter',
+    }
+    for sample, expected in samples.items():
+        result = normalize_string(sample)
+        assert result == expected

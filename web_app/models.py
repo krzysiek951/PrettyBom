@@ -1,25 +1,27 @@
 from __future__ import annotations
 
 import copy
-from abc import ABC, abstractmethod
-import os
-import pandas as pd
 import math
+import os
+from abc import ABC, abstractmethod
+
+import pandas as pd
+
 from web_app.assets.data.data import *
 from web_app.functions import *
-import re
+from .typing import *
 
 
 class BaseBomManager(ABC):
     def __init__(self):
-        self._bom_list = []
+        self._bom_list: list = []
 
     @property
-    def bom_list(self) -> list:
+    def bom_list(self) -> list[BaseBom]:
         return self._bom_list
 
     @bom_list.setter
-    def bom_list(self, bom_list: list) -> None:
+    def bom_list(self, bom_list: list[BaseBom]) -> None:
         self._bom_list = bom_list
 
     @abstractmethod
@@ -36,7 +38,7 @@ class BaseBomManager(ABC):
 
     def delete_bom(self, bom: BaseBom) -> None:
         if bom not in self.bom_list:
-            print(f"Given Bill of Materials: '{bom}' does not exist in a BOM list.")
+            raise ValueError(f'{bom} does not exist in a BOM list.')
         else:
             self.bom_list = [item for item in self.bom_list if item is not bom]
 
@@ -49,15 +51,16 @@ class BaseBomManager(ABC):
 class DefaultBomManager(BaseBomManager):
     def __init__(self):
         super().__init__()
+        self.bom_manager_type = 'default'
 
     def create_bom(self, **kwargs) -> DefaultBom:
         bom = DefaultBom(**kwargs)
         self.bom_list.append(bom)
         return bom
 
-    def reset_bom(self, bom: BaseBom) -> DefaultBom:
+    def reset_bom(self, bom: DefaultBom) -> DefaultBom:
         if bom not in self.bom_list:
-            print(f"Given Bill of Materials: '{bom}' does not exist in a BOM list.")
+            raise ValueError(f"{bom} does not exist in a BOM list.")
         else:
             clean_bom = DefaultBom()
             self.bom_list = [item if item is not bom else clean_bom for item in self.bom_list]
@@ -66,48 +69,16 @@ class DefaultBomManager(BaseBomManager):
 
 class BaseBom(ABC):
     def __init__(self, **kwargs):
-        self._part_list = []
-        self._imported_bom_filepath = ''
-        self._imported_bom_columns = []
-        self._exported_columns = []
-        self._part_position_column = kwargs.get('part_position_column', '')
-        self._part_quantity_column = kwargs.get('part_quantity_column', '')
-        self._part_number_column = kwargs.get('part_number_column', '')
-        self._part_name_column = kwargs.get('part_name_column', '')
-        self._main_assembly_sets = kwargs.get('main_assembly_sets', 0)
-        self._main_assembly_name = kwargs.get('main_assembly_name', '')
-
-    @property
-    def part_list(self) -> list:
-        return self._part_list
-
-    @part_list.setter
-    def part_list(self, part_list: list) -> None:
-        self._part_list = part_list
-
-    @property
-    def exported_columns(self) -> list:
-        return self._exported_columns
-
-    @exported_columns.setter
-    def exported_columns(self, exported_columns: list) -> None:
-        self._exported_columns = exported_columns
-
-    @property
-    def imported_bom_filepath(self) -> str:
-        return self._imported_bom_filepath
-
-    @imported_bom_filepath.setter
-    def imported_bom_filepath(self, imported_bom_filepath: str) -> None:
-        self._imported_bom_filepath = imported_bom_filepath
-
-    @property
-    def imported_bom_columns(self) -> list:
-        return self._imported_bom_columns
-
-    @imported_bom_columns.setter
-    def imported_bom_columns(self, imported_bom_columns: list) -> None:
-        self._imported_bom_columns = imported_bom_columns
+        self.part_list: list[BasePart] = []
+        self.imported_bom_filepath: str = ''
+        self.imported_bom_columns: list[str] = []
+        self.exported_columns: list[str] = []
+        self.part_position_column: str = kwargs.get('part_position_column', '')
+        self.part_quantity_column: str = kwargs.get('part_quantity_column', '')
+        self.part_number_column: str = kwargs.get('part_number_column', '')
+        self.part_name_column: str = kwargs.get('part_name_column', '')
+        self._main_assembly_sets: int = kwargs.get('main_assembly_sets', 0)
+        self.main_assembly_name: str = kwargs.get('main_assembly_name', '')
 
     @abstractmethod
     def create_part(self, **kwargs) -> BasePart:
@@ -119,7 +90,7 @@ class BaseBom(ABC):
 
     def delete_part(self, part: BasePart) -> None:
         if part not in self.part_list:
-            print(f"Given part: '{part}' does not exist in a Bill of Materials.")
+            raise ValueError(f'{part} does not exist in a Bill of Materials.')
         else:
             self.part_list = [item for item in self.part_list if item is not part]
 
@@ -135,14 +106,14 @@ class BaseBom(ABC):
         for index, part in enumerate(self.part_list):
             print(index, part.__dict__)
 
-    def import_csv(self, filepath: str, bom_header_position: str) -> None:
+    def import_csv(self, filepath: str, bom_header_position: HeaderPositions) -> None:
         importer = CsvBomImporter(filepath, bom_header_position)
         self.imported_bom_columns = importer.imported_bom_columns
         self.imported_bom_filepath = filepath
         for part in importer.imported_bom_list:
             self.create_part(**part)
 
-    def export_to_xlsx(self, export_folder_pathname, filename='') -> str:
+    def export_to_xlsx(self, export_folder_pathname: str, filename: str = '') -> str:
         default_file_name = 'PrettyBom - Bill of materials'
         if not filename:
             if self.imported_bom_filepath:
@@ -159,110 +130,40 @@ class DefaultBom(BaseBom):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.bom_type = 'default'
-        self._production_part_keywords = kwargs.get('production_part_keywords', [])
-        self._junk_part_keywords = kwargs.get('junk_part_keywords', [])
-        self._junk_part_empty_fields = kwargs.get('junk_part_empty_fields', [])
-        self._normalized_columns = kwargs.get('normalized_columns', [])
-        self._parts_sorting = kwargs.get('parts_sorting', True)
-        self.bom_processor = DefaultBomProcessor(**kwargs)
+        self.production_part_keywords: list = kwargs.get('production_part_keywords', [])
+        self.junk_part_keywords: list = kwargs.get('junk_part_keywords', [])
+        self.junk_part_empty_fields: list = kwargs.get('junk_part_empty_fields', [])
+        self.normalized_columns: list = kwargs.get('normalized_columns', [])
+        self.parts_sorting: bool = kwargs.get('parts_sorting', True)
+        self.bom_processor: DefaultBomProcessor | None = None
 
     def create_part(self, **kwargs) -> DefaultPart:
         part = DefaultPart(**kwargs)
         self.part_list.append(part)
         return part
 
-    # def process_part_list(self) -> None:
     def process_part_list(self):
+        self.bom_processor = DefaultBomProcessor(
+            production_part_keywords=self.production_part_keywords,
+            junk_part_keywords=self.junk_part_keywords,
+            junk_part_empty_fields=self.junk_part_empty_fields,
+            part_position_column=self.part_position_column,
+            part_quantity_column=self.part_quantity_column,
+            part_number_column=self.part_number_column,
+            part_name_column=self.part_name_column,
+            main_assembly_name=self.main_assembly_name,
+            main_assembly_sets=self.main_assembly_sets,
+            normalized_columns=self.normalized_columns,
+            parts_sorting=self.parts_sorting,
+        )
         try:
             self.bom_processor.run_processing(self.part_list)
             self.part_list = self.bom_processor.processed_part_list
         except ValueError as error:
-            # print(error)
             return error
 
     def undo_processing(self) -> None:
         self.part_list = self.bom_processor.initial_part_list
-
-    @property
-    def production_part_keywords(self) -> str:
-        return self._production_part_keywords
-
-    @production_part_keywords.setter
-    def production_part_keywords(self, production_part_keywords: str) -> None:
-        self._production_part_keywords = production_part_keywords
-        self.bom_processor.production_part_keywords = production_part_keywords
-
-    @property
-    def junk_part_keywords(self) -> list:
-        return self._junk_part_keywords
-
-    @junk_part_keywords.setter
-    def junk_part_keywords(self, junk_part_keywords: list) -> None:
-        self._junk_part_keywords = junk_part_keywords
-        self.bom_processor.junk_part_keywords = junk_part_keywords
-
-    @property
-    def junk_part_empty_fields(self) -> list:
-        return self._junk_part_empty_fields
-
-    @junk_part_empty_fields.setter
-    def junk_part_empty_fields(self, junk_part_empty_fields: list) -> None:
-        self._junk_part_empty_fields = junk_part_empty_fields
-        self.bom_processor.junk_part_empty_fields = junk_part_empty_fields
-
-    @property
-    def normalized_columns(self) -> list:
-        return self._normalized_columns
-
-    @normalized_columns.setter
-    def normalized_columns(self, normalized_columns: list) -> None:
-        self._normalized_columns = normalized_columns
-        self.bom_processor.normalized_columns = normalized_columns
-
-    @property
-    def parts_sorting(self) -> bool:
-        return self._parts_sorting
-
-    @parts_sorting.setter
-    def parts_sorting(self, parts_sorting: bool) -> None:
-        self._parts_sorting = parts_sorting
-        self.bom_processor.parts_sorting = parts_sorting
-
-    @property
-    def part_position_column(self) -> str:
-        return self._part_position_column
-
-    @part_position_column.setter
-    def part_position_column(self, part_position_column: str) -> None:
-        self._part_position_column = part_position_column
-        self.bom_processor.part_position_column = part_position_column
-
-    @property
-    def part_quantity_column(self) -> str:
-        return self._part_quantity_column
-
-    @part_quantity_column.setter
-    def part_quantity_column(self, part_quantity_column: str) -> None:
-        self._part_quantity_column = part_quantity_column
-        self.bom_processor.part_quantity_column = part_quantity_column
-
-    @property
-    def part_number_column(self) -> str:
-        return self._part_number_column
-
-    @part_number_column.setter
-    def part_number_column(self, part_number_column: str) -> None:
-        self._part_number_column = part_number_column
-        self.bom_processor.part_number_column = part_number_column
-
-    @property
-    def part_name_column(self) -> str:
-        return self._part_name_column
-
-    @part_name_column.setter
-    def part_name_column(self, part_name_column: str) -> None:
-        self._part_name_column = part_name_column
-        self.bom_processor.part_name_column = part_name_column
 
     @property
     def main_assembly_sets(self) -> int:
@@ -270,18 +171,11 @@ class DefaultBom(BaseBom):
 
     @main_assembly_sets.setter
     def main_assembly_sets(self, main_assembly_sets: int) -> None:
-        main_assembly_sets = int(main_assembly_sets)
-        self._main_assembly_sets = main_assembly_sets
-        self.bom_processor.main_assembly_sets = main_assembly_sets
-
-    @property
-    def main_assembly_name(self) -> str:
-        return self._main_assembly_name
-
-    @main_assembly_name.setter
-    def main_assembly_name(self, main_assembly_name: str) -> None:
-        self._main_assembly_name = main_assembly_name
-        self.bom_processor.main_assembly_name = main_assembly_name
+        try:
+            main_assembly_sets = int(main_assembly_sets)
+            self._main_assembly_sets = main_assembly_sets
+        except ValueError as e:
+            raise ValueError('Main assembly sets must be of integer type.') from e
 
 
 class BasePart(ABC):
@@ -294,8 +188,8 @@ class BasePart(ABC):
         self.parent_assembly = None
         self.assembly_number = None
         self.assembly_name = None
-        self.type = None
-        self.file_type = None
+        self.type = None  # TODO: ADD LITERAL
+        self.file_type = None  # TODO: ADD LITERAL
         self.is_fastener = None
         self.is_purchased = None
         self.is_production = None
@@ -312,9 +206,9 @@ class DefaultPart(BasePart):
 
 class BaseBomFileImporter(ABC):
     def __init__(self, filepath: str):
-        self.filepath = filepath
-        self.imported_bom_list = []
-        self.imported_bom_columns = []
+        self.filepath: str = filepath
+        self.imported_bom_list: list = []
+        self.imported_bom_columns: list = []
 
     @abstractmethod
     def import_file(self) -> None:
@@ -326,9 +220,10 @@ class BaseBomFileImporter(ABC):
 
 
 class CsvBomImporter(BaseBomFileImporter):
-    def __init__(self, filepath: str, imported_bom_header_position: str):
+
+    def __init__(self, filepath: str, imported_bom_header_position: HeaderPositions):
         super().__init__(filepath)
-        self.imported_bom_header_position = imported_bom_header_position
+        self.imported_bom_header_position: HeaderPositions = imported_bom_header_position  # TODO: ADD LITERAL
         self.import_file()
 
     def import_file(self) -> None:
@@ -364,8 +259,8 @@ class CsvBomImporter(BaseBomFileImporter):
 
 class BaseBomProcessor:
     def __init__(self):
-        self.initial_part_list = []
-        self.processed_part_list = []
+        self.initial_part_list: list = []
+        self.processed_part_list: list = []
 
     def print_initial_part_list(self) -> None:
         print("====== INITIAL PART LIST ======")
@@ -395,12 +290,16 @@ class DefaultBomProcessor(BaseBomProcessor):
         self.normalized_columns = kwargs.get('normalized_columns', '')
         self.parts_sorting = kwargs.get('parts_sorting', '')
         self.processor_validator: BomProcessorValidator | None = None
+        self.part_position_delimiter: str | None = None
 
     def run_processing(self, part_list) -> None:
         print('\n###### PROCESSOR MODULE ######')
         print('Part list processing started...')
-        self.validate_part_list()
+
         self.initial_part_list = copy.deepcopy(part_list)
+        self.run_validation()
+
+        self.part_position_delimiter = self.processor_validator.part_position_delimiter
         new_part_list = []
         for part in part_list:
             self._set_part_extra_keys(part)
@@ -410,16 +309,14 @@ class DefaultBomProcessor(BaseBomProcessor):
         self.processed_part_list = processed_part_list
         print('Success! Part list processing finished.\n')
 
-    def validate_part_list(self):
+    def run_validation(self):
         print('\n###### VALIDATOR MODULE ######')
         print('Part list validation started...')
-        # self.processor_validator = BomProcessorValidator()
-        self.processor_validator = BomProcessorValidator()
-        validator = self.processor_validator
-        part_list = self.initial_part_list
+
+        validator = self.processor_validator = BomProcessorValidator()
 
         if not validator.is_part_list_valid(
-                part_list,
+                self.initial_part_list,
                 part_position_column=self.part_position_column,
                 part_quantity_column=self.part_quantity_column,
         ):
@@ -431,9 +328,9 @@ class DefaultBomProcessor(BaseBomProcessor):
 
             error_messages = []
             if validator.invalid_position_value_parts:
-                error_messages.append(get_error_message(part_list, validator.invalid_position_value_parts))
+                error_messages.append(get_error_message(self.initial_part_list, validator.invalid_position_value_parts))
             if validator.invalid_quantity_value_parts:
-                error_messages.append(get_error_message(part_list, validator.invalid_quantity_value_parts))
+                error_messages.append(get_error_message(self.initial_part_list, validator.invalid_quantity_value_parts))
             raise ValueError('\n'.join(error_messages) + '\nProcessing cancelled.')
         print('Success! Part list validation finished.\n')
 
@@ -463,9 +360,9 @@ class DefaultBomProcessor(BaseBomProcessor):
         return parent_name
 
     def _get_parent_ids(self, part: BasePart) -> list:
-        position_split = getattr(part, self.part_position_column).split('.')
+        position_split = getattr(part, self.part_position_column).split(self.part_position_delimiter)
         parents_count = len(position_split) - 1
-        parents_id = ['.'.join(position_split[:(num + 1)]) for num in range(parents_count)]
+        parents_id = [self.part_position_delimiter.join(position_split[:(num + 1)]) for num in range(parents_count)]
         return parents_id
 
     def _get_parent(self, part: BasePart) -> BasePart:
@@ -480,12 +377,14 @@ class DefaultBomProcessor(BaseBomProcessor):
         return parent
 
     def _get_child_ids(self, part: BasePart) -> list:
-        position_split = getattr(part, self.part_position_column).split('.')
+        position_split = getattr(part, self.part_position_column).split(self.part_position_delimiter)
         part_len = len(position_split)
         child_len = part_len + 2
         child_id = [getattr(item, self.part_position_column) for item in self.initial_part_list if
-                    len(getattr(item, self.part_position_column).split('.')) + 1 == child_len and
-                    getattr(item, self.part_position_column).split('.')[:part_len] == position_split]
+                    len(getattr(item, self.part_position_column).split(
+                        self.part_position_delimiter)) + 1 == child_len and
+                    getattr(item, self.part_position_column).split(self.part_position_delimiter)[
+                    :part_len] == position_split]
         return child_id
 
     @staticmethod
@@ -601,30 +500,32 @@ class DefaultBomProcessor(BaseBomProcessor):
     def _normalize_name(self, part: BasePart) -> BasePart:
         for key in self.normalized_columns:
             if hasattr(part, key):
-                normalized_name = normalize_string(getattr(part, key)).title()
+                normalized_name = normalize_string(getattr(part, key))
                 setattr(part, key, normalized_name)
         return part
 
     def _get_sub_bom(self, part: BasePart, part_list: list) -> list:
-        name_split = getattr(part, self.part_position_column).split('.')
+        name_split = getattr(part, self.part_position_column).split(self.part_position_delimiter)
         part_len = len(getattr(part, "parent")) + 1
         child_len = len(getattr(part, "parent")) + 2
         parts_order = "pfjabcdeghiklmnoqrstuvwxyz"
         # implemented for ordering parts as: "production, purchased, fastener, junk
         sub_bom = [item for item in part_list if len(getattr(item, "parent")) + 1 == child_len and
-                   getattr(item, self.part_position_column).split('.')[:part_len] == name_split]
+                   getattr(item, self.part_position_column).split(self.part_position_delimiter)[
+                   :part_len] == name_split]
         sub_bom = sorted(sub_bom,
                          key=lambda word: ([parts_order.index(c) for c in word.type],
                                            getattr(word, self.part_number_column)), reverse=True)
         return sub_bom
 
     def _create_bom_tree_list(self, part_list: list) -> list:
-        bom_tree_list = [part for part in part_list if len(getattr(part, self.part_position_column).split('.')) == 1]
+        bom_tree_list = [part for part in part_list if
+                         len(getattr(part, self.part_position_column).split(self.part_position_delimiter)) == 1]
         bom_tree_list = sorted(bom_tree_list, key=lambda d: getattr(d, self.part_number_column), reverse=False)
         last_generation = 20
         for generation in range(1, last_generation):
             for part in bom_tree_list:
-                child_generation = len(getattr(part, self.part_position_column).split('.'))
+                child_generation = len(getattr(part, self.part_position_column).split(self.part_position_delimiter))
                 if child_generation == generation:
                     child_bom = sorted(self._get_sub_bom(part, part_list), key=lambda d: self.part_number_column,
                                        reverse=False)
@@ -635,34 +536,49 @@ class DefaultBomProcessor(BaseBomProcessor):
 
 class BomProcessorValidator:
     def __init__(self):
-        self.invalid_position_value_parts = []
-        self.invalid_quantity_value_parts = []
+        self.invalid_position_value_parts: list = []
+        self.invalid_quantity_value_parts: list = []
+        self.part_position_delimiter: str | None = None
 
-    def is_part_list_valid(self, part_list, part_position_column, part_quantity_column):
-        validators_data = []
+    def is_part_list_valid(self, part_list: list, part_position_column: str, part_quantity_column: str) -> bool:
+        """  """
+        validators = []
+
         for part in part_list:
-            validators = [
-                self.is_digit_column_valid(part, part_position_column, self.invalid_position_value_parts),
-                self.is_digit_column_valid(part, part_quantity_column, self.invalid_quantity_value_parts),
+            part_validators = [
+                self.is_position_delimiter_unique(part, part_position_column),
+                self.is_quantity_a_number(part, part_quantity_column),
             ]
-            is_part_valid = all(validators)
-            validators_data.append(is_part_valid)
-        is_part_list_valid = all(validators_data)
-        return is_part_list_valid
+            is_part_valid = all(part_validators)
+            validators.append(is_part_valid)
 
-    @staticmethod
-    def is_digit_column_valid(part, column_name, invalid_export_list):
+        return all(validators)
+
+    def is_position_delimiter_unique(self, part: BasePart, part_position_column: str) -> bool:
+        """ Returns true if position column has at least one non-digit unique delimiter for all parts. """
+        try:
+            position_delimiter = get_position_delimiter(getattr(part, part_position_column))
+            if not position_delimiter or position_delimiter is self.part_position_delimiter:
+                return True
+            elif position_delimiter and not self.part_position_delimiter:
+                self.part_position_delimiter = position_delimiter
+                return True
+            else:
+                self.invalid_position_value_parts.append(part)
+                return False
+        except ValueError:
+            self.invalid_position_value_parts.append(part)
+            return False
+
+    def is_quantity_a_number(self, part: BasePart, column_name: str) -> bool:
         is_data_valid = False
-        part_position_split = getattr(part, column_name).split('.')
+        part_position_split = getattr(part, column_name).split(self.part_position_delimiter)
         for position in part_position_split:
             is_data_valid = position.isdigit()
             if not is_data_valid:
-                invalid_export_list.append(part)
+                self.invalid_quantity_value_parts.append(part)
                 return is_data_valid
         return is_data_valid
-
-    def is_quantity_column_valid(self):
-        pass
 
 
 class BaseBomExporter(ABC):
