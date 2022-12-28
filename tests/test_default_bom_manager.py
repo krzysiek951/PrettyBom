@@ -1,6 +1,6 @@
 import pytest
 
-from web_app.models import *
+from web_app.models import DefaultBomManager, DefaultBom
 
 
 class TestDefaultBomManager:

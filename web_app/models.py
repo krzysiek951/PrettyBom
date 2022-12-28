@@ -90,7 +90,7 @@ class BaseBom(ABC):
 
     def delete_part(self, part: BasePart) -> None:
         if part not in self.part_list:
-            print(f"Given part: '{part}' does not exist in a Bill of Materials.")
+            raise ValueError(f'{part} does not exist in a Bill of Materials.')
         else:
             self.part_list = [item for item in self.part_list if item is not part]
 
@@ -113,7 +113,7 @@ class BaseBom(ABC):
         for part in importer.imported_bom_list:
             self.create_part(**part)
 
-    def export_to_xlsx(self, export_folder_pathname, filename='') -> str:
+    def export_to_xlsx(self, export_folder_pathname: str, filename: str = '') -> str:
         default_file_name = 'PrettyBom - Bill of materials'
         if not filename:
             if self.imported_bom_filepath:
@@ -171,8 +171,11 @@ class DefaultBom(BaseBom):
 
     @main_assembly_sets.setter
     def main_assembly_sets(self, main_assembly_sets: int) -> None:
-        main_assembly_sets = int(main_assembly_sets)
-        self._main_assembly_sets = main_assembly_sets
+        try:
+            main_assembly_sets = int(main_assembly_sets)
+            self._main_assembly_sets = main_assembly_sets
+        except ValueError as e:
+            raise ValueError('Main assembly sets must be of integer type.') from e
 
 
 class BasePart(ABC):
