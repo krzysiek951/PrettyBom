@@ -276,6 +276,7 @@ class BaseBomProcessor:
 class DefaultBomProcessor(BaseBomProcessor):
     def __init__(self, **kwargs):
         super().__init__()
+        self.processing_succeeded = False
         self.production_part_keywords = kwargs.get('production_part_keywords', '')
         self.junk_part_keywords = kwargs.get('junk_part_keywords', '')
         self.junk_part_empty_fields = kwargs.get('junk_part_empty_fields', '')
@@ -292,14 +293,17 @@ class DefaultBomProcessor(BaseBomProcessor):
         self.processor_validator: BomProcessorValidator | None = None
         self.part_position_delimiter: str | None = None
 
-    def run_processing(self, part_list) -> None:
-        print('\n###### PROCESSOR MODULE ######')
+    def run_processing(self, part_list: list[DefaultPart]) -> None:
         print('Part list processing started...')
 
         self.initial_part_list = copy.deepcopy(part_list)
+
         self.run_validation()
+        if not self.processor_validator.validation_succeded:
+            raise ValueError('\n'.join(self.processor_validator.error_messages) + '\nProcessing cancelled.')
 
         self.part_position_delimiter = self.processor_validator.part_position_delimiter
+
         new_part_list = []
         for part in part_list:
             self._set_part_extra_keys(part)
@@ -307,32 +311,16 @@ class DefaultBomProcessor(BaseBomProcessor):
             new_part_list.append(part)
         processed_part_list = self._create_bom_tree_list(new_part_list)
         self.processed_part_list = processed_part_list
+        self.processing_succeeded = True
         print('Success! Part list processing finished.\n')
 
-    def run_validation(self):
-        print('\n###### VALIDATOR MODULE ######')
-        print('Part list validation started...')
-
+    def run_validation(self) -> None:
         validator = self.processor_validator = BomProcessorValidator()
-
-        if not validator.is_part_list_valid(
-                self.initial_part_list,
-                part_position_column=self.part_position_column,
-                part_quantity_column=self.part_quantity_column,
-        ):
-
-            def get_error_message(bom_part_list: list, invalid_part_list: list):
-                error_message = f'{len(bom_part_list)} parts verified by position value. ' \
-                                f'Found {len(invalid_part_list)} invalid parts.'
-                return error_message
-
-            error_messages = []
-            if validator.invalid_position_value_parts:
-                error_messages.append(get_error_message(self.initial_part_list, validator.invalid_position_value_parts))
-            if validator.invalid_quantity_value_parts:
-                error_messages.append(get_error_message(self.initial_part_list, validator.invalid_quantity_value_parts))
-            raise ValueError('\n'.join(error_messages) + '\nProcessing cancelled.')
-        print('Success! Part list validation finished.\n')
+        validator.run(
+            self.initial_part_list,
+            self.part_position_column,
+            self.part_quantity_column,
+        )
 
     def _set_part_extra_keys(self, part: BasePart) -> None:
         """A function that fills up the part attributes."""
@@ -536,13 +524,21 @@ class DefaultBomProcessor(BaseBomProcessor):
 
 class BomProcessorValidator:
     def __init__(self):
+        self.validation_succeded: bool = False
+        self.error_messages: list[str] = []
         self.invalid_position_value_parts: list = []
         self.invalid_quantity_value_parts: list = []
         self.part_position_delimiter: str | None = None
 
-    def is_part_list_valid(self, part_list: list, part_position_column: str, part_quantity_column: str) -> bool:
+    def run(
+            self,
+            part_list: list[BasePart],
+            part_position_column: str,
+            part_quantity_column: str,
+    ) -> None:
         """  """
-        validators = []
+        print('Part list validation started...')
+        validated_parts = []
 
         for part in part_list:
             part_validators = [
@@ -550,9 +546,19 @@ class BomProcessorValidator:
                 self.is_quantity_a_number(part, part_quantity_column),
             ]
             is_part_valid = all(part_validators)
-            validators.append(is_part_valid)
+            validated_parts.append(is_part_valid)
 
-        return all(validators)
+            self.validation_succeded = all(validated_parts)
+
+            if self.invalid_position_value_parts:
+                self.error_messages.append(
+                    f'Part position must be of integer type and use unique delimiter. Found '
+                    f'{len(self.invalid_position_value_parts)} invalid parts.')
+            if self.invalid_quantity_value_parts:
+                self.error_messages.append(
+                    f'Part quantity must be of integer type. Found '
+                    f'{len(self.invalid_quantity_value_parts)} invalid parts.')
+        print('Part list validation finished.')
 
     def is_position_delimiter_unique(self, part: BasePart, part_position_column: str) -> bool:
         """ Returns true if position column has at least one non-digit unique delimiter for all parts. """
@@ -571,14 +577,12 @@ class BomProcessorValidator:
             return False
 
     def is_quantity_a_number(self, part: BasePart, column_name: str) -> bool:
-        is_data_valid = False
-        part_position_split = getattr(part, column_name).split(self.part_position_delimiter)
-        for position in part_position_split:
-            is_data_valid = position.isdigit()
-            if not is_data_valid:
-                self.invalid_quantity_value_parts.append(part)
-                return is_data_valid
-        return is_data_valid
+        part_quantity = str(getattr(part, column_name))
+        is_quantity_a_number = part_quantity.isdigit()
+        if not is_quantity_a_number:
+            self.invalid_quantity_value_parts.append(part)
+            return is_quantity_a_number
+        return is_quantity_a_number
 
 
 class BaseBomExporter(ABC):
