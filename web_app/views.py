@@ -5,7 +5,7 @@ from flask import session, render_template, flash, request, redirect, url_for, s
 from flask_mail import Message, Mail
 from werkzeug.utils import secure_filename
 
-from .models import DefaultBomManager
+from .models import DefaultBomManager, DefaultBom
 from .typing import *
 
 bp = Blueprint('views', __name__)
@@ -60,7 +60,7 @@ def home_page():
 
 @bp.route('/user_data', methods=['GET', 'POST'])
 def user_data():
-    user_bom = session.get('user_bom')
+    user_bom: DefaultBom = session.get('user_bom')
 
     if request.method == 'POST':
         bom_attributes = {
@@ -84,11 +84,16 @@ def user_data():
         for key, value in bom_attributes.items():
             setattr(user_bom, key, value)
 
-        errors = user_bom.process_part_list()
+        user_bom.process_part_list()
+        invalid_position_value_parts = user_bom.bom_processor.processor_validator.invalid_position_value_parts
+        invalid_quantity_value_parts = user_bom.bom_processor.processor_validator.invalid_quantity_value_parts
 
-        if errors:
-            print(errors)
-            flash(errors)
+        if invalid_position_value_parts:
+            flash(f'Part position must be of integer type and use unique delimiter. Found '
+                  f'{len(invalid_position_value_parts)} invalid parts.')
+        if invalid_quantity_value_parts:
+            flash(f'Part quantity must be of integer type. Found '
+                  f'{len(invalid_quantity_value_parts)} invalid parts.')
 
         if '_flashes' in session:
             return redirect(request.url)
@@ -121,7 +126,6 @@ def contact():
     mail = Mail()
     mail.init_app(current_app)
     if request.method == 'POST':
-        print(request.form)
         msg = Message()
         msg.subject = request.form['subject']
         msg.recipients = ["krzysiek951@gmail.com"]
