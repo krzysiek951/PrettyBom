@@ -3,12 +3,11 @@ from __future__ import annotations
 import copy
 import os
 from abc import ABC, abstractmethod
-from typing import TypedDict
 
 import pandas as pd
 
 from web_app.models import AbstractBom, AbstractPart
-from web_app.typing import *
+from web_app.typing import ImportedBomSource, HeaderPositions
 
 
 class AbstractPartListImporter(ABC):
@@ -102,9 +101,3 @@ class PartListCsvImporter(AbstractPartListImporter):
         filename = os.path.basename(self.filepath)
         source = {'type': 'file', 'name': filename}
         return source
-
-
-class ImportedBomSource(TypedDict):
-    """Class defining the source representation."""
-    type: ImportedBomSourceTypes
-    name: str
