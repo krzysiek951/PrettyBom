@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import copy
+import os
 from abc import ABC, abstractmethod
+from typing import TypedDict
 
 import pandas as pd
 
-from web_app.models import AbstractPartList, AbstractPart
+from web_app.models import AbstractBom, AbstractPart
 from web_app.typing import *
 
 
@@ -26,18 +28,24 @@ class AbstractPartListImporter(ABC):
         """Get a part list column names from read source."""
         ...
 
-    def import_to(self, part_list: AbstractPartList) -> None:
+    @abstractmethod
+    def _get_imported_bom_source(self) -> ImportedBomSource:
+        """Get a source from where imported bom comes from."""
+        ...
+
+    def import_to(self, part_list: AbstractBom) -> None:
         """Import read parts to any part list created by BOM Manager."""
         for part in self.imported_part_list:
             part_list.create_part(**part)
         part_list.imported_bom_columns = self.imported_bom_columns
+        part_list.imported_bom_sources.append(self._get_imported_bom_source())
 
 
 class PartListCsvImporter(AbstractPartListImporter):
     """Class for importing a part list from a csv file."""
 
     def __init__(self, filepath: str, imported_bom_header_position: HeaderPositions):
-        self.filepath: str = filepath
+        self.filepath = filepath
         self.imported_bom_header_position: HeaderPositions = imported_bom_header_position
         self._df = None
         super().__init__()
@@ -88,3 +96,15 @@ class PartListCsvImporter(AbstractPartListImporter):
             column_list = first_row
         self.imported_bom_columns = column_list
         return column_list
+
+    def _get_imported_bom_source(self) -> ImportedBomSource:
+        """Returns the representation of the imported source."""
+        filename = os.path.basename(self.filepath)
+        source = {'type': 'file', 'name': filename}
+        return source
+
+
+class ImportedBomSource(TypedDict):
+    """Class defining the source representation."""
+    type: ImportedBomSourceTypes
+    name: str
