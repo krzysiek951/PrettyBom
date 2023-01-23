@@ -6,30 +6,28 @@ from typing import Optional
 import pandas as pd
 
 from web_app.models.bom import AbstractBom
-from web_app.models.part import AbstractPart
 
 
 class AbstractBomExporter(ABC):
     """Abstract class for exporting a part list to a various file types."""
 
-    def __init__(self):
+    def __init__(self, bom: AbstractBom):
+        self.bom: AbstractBom = bom
         self.exported_filename: str = ''
 
     @abstractmethod
-    def _save(self, part_list: list[AbstractPart], exported_columns: list, filename_without_extension: str,
-              exports_pathname: str):
+    def _save(self, exported_columns: list, exports_directory: str, filename_without_extension: str):
         """Creates a file with a part list."""
         ...
 
-    def export_part_list(self, bom: AbstractBom, exported_columns: list, exports_pathname: str,
-                         filename: Optional[str] = None) -> None:
+    def export_part_list(self, exported_columns: list, exports_directory: str, filename: Optional[str] = None) -> None:
         """Exports the part list to a file."""
         exported_filename = 'PrettyBom - Bill of materials'
         if not filename:
-            last_imported_file = self._get_first_imported_file(bom)
-            if last_imported_file:
-                exported_filename = last_imported_file.rsplit('.', 1)[0]
-        self._save(bom.part_list, exported_columns, exported_filename, exports_pathname=exports_pathname)
+            first_imported_file = self._get_first_imported_file(self.bom)
+            if first_imported_file:
+                exported_filename = first_imported_file.rsplit('.', 1)[0]
+        self._save(exported_columns, exports_directory, exported_filename)
 
     @staticmethod
     def _get_first_imported_file(bom: AbstractBom) -> Optional[str]:
@@ -42,12 +40,11 @@ class AbstractBomExporter(ABC):
 class BomXlsxExporter(AbstractBomExporter):
     """Class for exporting a part list to the xlsx file."""
 
-    def _save(self, part_list: list[AbstractPart], exported_columns: list, filename_without_extension: str,
-              exports_pathname: str):
-        df = pd.DataFrame(map(vars, part_list), columns=exported_columns)
+    def _save(self, exported_columns: list, exports_directory: str, filename_without_extension: str):
+        df = pd.DataFrame(map(vars, self.bom.part_list), columns=exported_columns)
         df.columns = df.columns.str.replace('_', ' ').str.capitalize()
 
         self.exported_filename = f'{filename_without_extension}.xlsx'
-        exported_file_path = f'{exports_pathname}{self.exported_filename}'
-        df.to_excel(exported_file_path, index=False, header=True)
+        exported_filepath = f'{exports_directory}{self.exported_filename}'
+        df.to_excel(exported_filepath, index=False, header=True)
         print(f"Exported {len(df)} parts to file: {self.exported_filename}.")
