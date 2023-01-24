@@ -3,51 +3,53 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from web_app.models.bom import AbstractBom, DefaultBom
+from web_app.typing import BomManagerClassTypes
 
 
-class BaseBomManager(ABC):
+class AbstractBomManager(ABC):
+    """Abstract class for a Manager of the Bill of Materials."""
+
     def __init__(self):
-        self._bom_list: list = []
-
-    @property
-    def bom_list(self) -> list[AbstractBom]:
-        return self._bom_list
-
-    @bom_list.setter
-    def bom_list(self, bom_list: list[AbstractBom]) -> None:
-        self._bom_list = bom_list
+        self.bom_list: list[AbstractBom] = []
 
     @abstractmethod
     def create_bom(self, **kwargs) -> AbstractBom:
+        """Creates a new Bill of Materials within BOM Manager."""
         ...
 
     @abstractmethod
     def reset_bom(self, bom: AbstractBom) -> AbstractBom:
+        """Completely cleans up the existing bill of materials."""
         ...
 
     def get_bom_count(self) -> int:
+        """Returns the quantity of a Bill of Materials in the BOM Manager."""
         bom_count = len(self.bom_list)
         return bom_count
 
     def delete_bom(self, bom: AbstractBom) -> None:
+        """Deletes an existing BOM from BOM Manager."""
         if bom not in self.bom_list:
             raise ValueError(f'{bom} does not exist in a BOM list.')
         else:
             self.bom_list = [item for item in self.bom_list if item is not bom]
 
     def print_bom_list(self) -> None:
+        """Prints all existing BOMs in BOM Manager."""
         print("==== BOM LIST ====")
         for index, bom in enumerate(self.bom_list):
             print(index, bom.__dict__)
 
 
-class DefaultBomManager(BaseBomManager):
+class DefaultBomManager(AbstractBomManager):
+    """Class for default type of the BOM Manager."""
+    manager_type: BomManagerClassTypes = 'default'
+
     def __init__(self):
         super().__init__()
-        self.bom_manager_type = 'default'
 
-    def create_bom(self, **kwargs) -> DefaultBom:
-        bom = DefaultBom(**kwargs)
+    def create_bom(self, main_assembly_name: str = '', main_assembly_sets: int = 0) -> DefaultBom:
+        bom = DefaultBom(main_assembly_name, main_assembly_sets)
         self.bom_list.append(bom)
         return bom
 
