@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from web_app.models.part import AbstractPart, DefaultPart
-from web_app.typing import ImportedBomSource
+from web_app.typing import ImportedBomSource, BomClassTypes
 
 
 class AbstractBom(ABC):
@@ -59,7 +59,7 @@ class AbstractBom(ABC):
 
 class DefaultBom(AbstractBom):
     """Class for default type of the Bill of Materials (BOM)."""
-    bom_type = 'default'
+    bom_type: BomClassTypes = 'default'
 
     def __init__(self, main_assembly_name: str = '', main_assembly_sets: int = 0):
         super().__init__(main_assembly_name, main_assembly_sets)
