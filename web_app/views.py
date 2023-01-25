@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import session, render_template, flash, request, redirect, url_for, send_from_directory, current_app, \
@@ -5,7 +6,8 @@ from flask import session, render_template, flash, request, redirect, url_for, s
 from flask_mail import Message, Mail
 from werkzeug.utils import secure_filename
 
-from .models import DefaultBomManager, DefaultBom
+from .models import DefaultBomManager, BomXlsxExporter, PartListCsvImporter, DefaultBomProcessor
+from .models.processor_director import FullFeatureProcessorDirector
 from .typing import *
 
 bp = Blueprint('views', __name__)
@@ -35,6 +37,8 @@ def home_page():
         If the user does not select a file, the browser submits an
         empty file without a filename.
         """
+        logging.warning('HOME PAGE DETECTED!')
+
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
@@ -45,9 +49,11 @@ def home_page():
             file.save(imported_bom_path_name)
 
             imported_bom_header_position: HeaderPositions = request.form['HEADER_POSITION']
+            bom_importer = PartListCsvImporter(imported_bom_path_name, imported_bom_header_position)
             user_bom_manager = DefaultBomManager()
             user_bom = user_bom_manager.create_bom()
-            user_bom.import_csv(filepath=imported_bom_path_name, bom_header_position=imported_bom_header_position)
+            bom_importer.import_to(user_bom)
+
             session['user_bom'] = user_bom
             return redirect(url_for('views.user_data'))
 
@@ -60,14 +66,20 @@ def home_page():
 
 @bp.route('/user_data', methods=['GET', 'POST'])
 def user_data():
-    user_bom: DefaultBom = session.get('user_bom')
+    user_bom = session.get('user_bom')
 
     if request.method == 'POST':
         bom_attributes = {
-            'production_part_keywords': request.form['PRODUCTION_PART_KEYWORDS'],
             'main_assembly_name': required(request.form['MAIN_ASSEMBLY_NAME'],
                                            'Please provide main assembly full name.'),
             'main_assembly_sets': required(request.form['MAIN_ASSEMBLY_SETS'], 'Please provide main assembly sets.'),
+        }
+
+        for key, value in bom_attributes.items():
+            setattr(user_bom, key, value)
+
+        processor_attributes = {
+            'production_part_keywords': request.form['PRODUCTION_PART_KEYWORDS'],
             'part_position_column': required(request.form['PART_POSITION_COLUMN'],
                                              'Please select part position column.'),
             'part_quantity_column': required(request.form['PART_QUANTITY_COLUMN'],
@@ -77,17 +89,15 @@ def user_data():
             'junk_part_empty_fields': request.form.getlist('JUNK_PART_EMPTY_FIELDS'),
             'junk_part_keywords': request.form['JUNK_PART_KEYWORDS'],
             'normalized_columns': request.form.getlist('NORMALIZED_COLUMN'),
-            'exported_columns': required(request.form.getlist('EXPORT_COLUMNS'),
-                                         'Please select at least one column to export.')
         }
 
-        for key, value in bom_attributes.items():
-            setattr(user_bom, key, value)
+        bom_processor = DefaultBomProcessor(user_bom)
+        processor_director = FullFeatureProcessorDirector(bom_processor)
+        bom_processor.set_attributes_from_kwargs(**processor_attributes)
+        processor_director.run()
 
-        user_bom.process_part_list()
-        invalid_position_value_parts = user_bom.bom_processor.processor_validator.invalid_position_value_parts
-        invalid_quantity_value_parts = user_bom.bom_processor.processor_validator.invalid_quantity_value_parts
-
+        invalid_position_value_parts = bom_processor.processor_validator.invalid_position_parts
+        invalid_quantity_value_parts = bom_processor.processor_validator.invalid_quantity_parts
         if invalid_position_value_parts:
             flash(f'Part position must be of integer type and use unique delimiter. Found '
                   f'{len(invalid_position_value_parts)} invalid parts.')
@@ -98,10 +108,13 @@ def user_data():
         if '_flashes' in session:
             return redirect(request.url)
 
+        exported_columns = required(request.form.getlist('EXPORT_COLUMNS'),
+                                    'Please select at least one column to export.')
         os.makedirs(current_app.config['EXPORTS_FOLDER'], exist_ok=True)
-        exported_filename = user_bom.export_to_xlsx(current_app.config['EXPORTS_FOLDER'])
-        user_bom.undo_processing()
-        session['exported_filename'] = exported_filename
+        bom_exporter = BomXlsxExporter(user_bom)
+        bom_exporter.export_part_list(exported_columns, current_app.config['EXPORTS_FOLDER'])
+        bom_processor.undo_processing()
+        session['exported_filename'] = bom_exporter.exported_filename
 
         return redirect(url_for('views.download'))
 
@@ -118,7 +131,7 @@ def download(url_filename):
     if url_filename:
         exported_bom_directory = os.path.join(os.getcwd(), current_app.config['EXPORTS_FOLDER'])
         return send_from_directory(exported_bom_directory, url_filename, as_attachment=True)
-    return render_template('download.html', exported_file_path=exported_filename + '.xlsx')
+    return render_template('download.html', exported_file_path=exported_filename)
 
 
 @bp.route('/contact', methods=['GET', 'POST'])

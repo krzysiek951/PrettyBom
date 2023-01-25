@@ -5,6 +5,7 @@ ImportedBomSourceTypes = Literal['file']
 BomManagerClassTypes = Literal['default']
 BomClassTypes = Literal['default']
 PartClassTypes = Literal['default']
+BomProcessorClassTypes = ['default']
 PartTypes = Literal['production', 'purchased', 'fastener', 'junk']
 PartFileTypes = Literal['part', 'assembly']
 
