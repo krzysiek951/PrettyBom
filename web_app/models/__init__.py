@@ -4,7 +4,8 @@ from .bom_processor import AbstractBomProcessor, DefaultBomProcessor
 from .part import AbstractPart, DefaultPart
 from .part_list_exporter import AbstractBomExporter, BomXlsxExporter
 from .part_list_importer import AbstractPartListImporter, PartListCsvImporter
-from .processor_validator import BomProcessorValidator
+from .processor_director import AbstractProcessorDirector, FullFeatureProcessorDirector
+from .processor_validator import AbstractPartListValidator, PartListValidator
 
 __all__ = [
     'AbstractBom', 'DefaultBom',
@@ -13,5 +14,6 @@ __all__ = [
     'AbstractPart', 'DefaultPart',
     'AbstractBomExporter', 'BomXlsxExporter',
     'AbstractPartListImporter', 'PartListCsvImporter',
-    'BomProcessorValidator',
+    'AbstractPartListValidator', 'PartListValidator',
+    'AbstractProcessorDirector', 'FullFeatureProcessorDirector',
 ]
