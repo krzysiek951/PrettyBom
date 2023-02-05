@@ -5,6 +5,7 @@ from typing import Optional
 
 import pandas as pd
 
+from web_app.functions import get_first_imported_file
 from web_app.models.bom import AbstractBom
 
 
@@ -24,17 +25,10 @@ class AbstractBomExporter(ABC):
         """Exports the part list to a file."""
         exported_filename = 'PrettyBom - Bill of materials'
         if not filename:
-            first_imported_file = self._get_first_imported_file(self.bom)
+            first_imported_file = get_first_imported_file(self.bom)
             if first_imported_file:
                 exported_filename = first_imported_file.rsplit('.', 1)[0]
         self._save(exported_columns, exports_directory, exported_filename)
-
-    @staticmethod
-    def _get_first_imported_file(bom: AbstractBom) -> Optional[str]:
-        """Returns the last imported file from the list of BOM import sources."""
-        file_imports = [source for source in bom.imported_bom_sources if 'file' in source['type']]
-        first_imported_file = file_imports[0]['name'] if file_imports else None
-        return first_imported_file
 
 
 class BomXlsxExporter(AbstractBomExporter):

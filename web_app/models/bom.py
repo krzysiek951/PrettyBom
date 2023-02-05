@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from web_app.exceptions import InvalidPartSetsValue, ObjectNotFound, AttrNotSetException
 from web_app.models.part import AbstractPart, DefaultPart
 from web_app.typing import ImportedBomSource, BomClassTypes
 
 
 class AbstractBom(ABC):
     """Abstract class for Bill of Materials (BOM)."""
+    bom_type: BomClassTypes = None
 
     def __init__(self, main_assembly_name: str = '', main_assembly_sets: int = 0):
         self.part_list: list[AbstractPart] = []
@@ -16,9 +18,20 @@ class AbstractBom(ABC):
         self._main_assembly_sets: int = main_assembly_sets
         self.main_assembly_name: str = main_assembly_name
 
+    def __str__(self):
+        return f'{self.bom_type} BOM:{self.__dict__}'
+
+    def __repr__(self):
+        return f'{self.__dict__}'
+
+    def __len__(self):
+        return len(self.part_list)
+
     @property
     def main_assembly_sets(self) -> int:
         """Getter for sets of the top-level assembly."""
+        if not self._main_assembly_sets:
+            raise AttrNotSetException('BOM must have "Assembly sets" set.')
         return self._main_assembly_sets
 
     @main_assembly_sets.setter
@@ -28,7 +41,7 @@ class AbstractBom(ABC):
             main_assembly_sets = int(main_assembly_sets)
             self._main_assembly_sets = main_assembly_sets
         except ValueError as e:
-            raise ValueError('Main assembly sets must be of integer type.') from e
+            raise InvalidPartSetsValue(main_assembly_sets) from e
 
     @abstractmethod
     def create_part(self, **kwargs) -> AbstractPart:
@@ -38,7 +51,7 @@ class AbstractBom(ABC):
     def delete_part(self, part: AbstractPart) -> None:
         """Deletes an existing part from Bill of Materials."""
         if part not in self.part_list:
-            raise ValueError(f'{part} does not exist in a Bill of Materials.')
+            raise ObjectNotFound(part, self)
         else:
             self.part_list = [item for item in self.part_list if item is not part]
 
@@ -52,19 +65,21 @@ class AbstractBom(ABC):
         return part_count
 
     def print_part_list(self) -> None:
+        """Prints a list of Parts in the Bill of Materials"""
         print("==== PART LIST ====")
         for index, part in enumerate(self.part_list):
             print(index, part.__dict__)
 
 
 class DefaultBom(AbstractBom):
-    """Class for default type of the Bill of Materials (BOM)."""
+    """Class for default type of the Bill of Materials."""
     bom_type: BomClassTypes = 'default'
 
     def __init__(self, main_assembly_name: str = '', main_assembly_sets: int = 0):
         super().__init__(main_assembly_name, main_assembly_sets)
 
     def create_part(self, **kwargs) -> DefaultPart:
+        """Creates a new Default Part within Bill of Materials."""
         part = DefaultPart(**kwargs)
         self.part_list.append(part)
         return part

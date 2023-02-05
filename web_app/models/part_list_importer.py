@@ -18,12 +18,12 @@ class AbstractPartListImporter(ABC):
         self.imported_bom_columns: list = self._get_part_list_columns()
 
     @abstractmethod
-    def _read_part_list(self) -> list:
+    def _read_part_list(self) -> list[AbstractPart]:
         """Read a source and return a part list."""
         ...
 
     @abstractmethod
-    def _get_part_list_columns(self) -> list:
+    def _get_part_list_columns(self) -> list[str]:
         """Get a part list column names from read source."""
         ...
 
