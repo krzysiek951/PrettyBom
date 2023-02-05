@@ -16,7 +16,10 @@ class ObjectNotFound(Exception):
 
 
 class AttrNotSetException(Exception):
-    ...
+    def __init__(self, attr_name):
+        self.attr_name = attr_name
+        self.msg = f'Processor must have the name of the {attr_name} column set.'
+        super().__init__(self.msg)
 
 
 class QuantityColumnIsNotDigit(Exception):

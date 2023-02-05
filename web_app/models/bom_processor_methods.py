@@ -36,7 +36,7 @@ class ProcessorMethods:
 
     def _get_pos_delimiter(self, part: AbstractPart) -> str:
         """" Returns Part's position unique delimiter. """
-        position_delimiters = get_number_delimiter(self._get_part_position(part))
+        position_delimiters = get_number_delimiter(self.get_part_position(part))
         delimiter = ' '.join(position_delimiters) if position_delimiters else None
         is_part_delimiter_unique = len(position_delimiters) <= 1
         current_set_delimiter = self.processor.part_position_delimiter
@@ -48,19 +48,19 @@ class ProcessorMethods:
             self.processor.part_position_delimiter = delimiter
         return delimiter
 
-    def _get_part_position(self, part: AbstractPart) -> str:
+    def get_part_position(self, part: AbstractPart) -> str:
         """Returns the 'Part position' attribute of the Part."""
         if not self.processor.part_position_column:
             raise AttrNotSetException('Processor must have the name of the "Part position" column set.')
         return getattr(part, self.processor.part_position_column)
 
-    def _get_part_number(self, part: AbstractPart) -> str:
+    def get_part_number(self, part: AbstractPart) -> str:
         """Returns the 'Part number' attribute of the Part."""
         if not self.processor.part_number_column:
             raise AttrNotSetException('Processor must have the name of the "Part number" column set.')
         return getattr(part, self.processor.part_number_column)
 
-    def _get_part_quantity(self, part: AbstractPart) -> int:
+    def get_part_quantity(self, part: AbstractPart) -> int:
         """Returns the 'Part quantity' attribute of the Part."""
         if not self.processor.part_quantity_column:
             raise AttrNotSetException('Processor must have the name of the "Part quantity" column set.')
@@ -70,15 +70,15 @@ class ProcessorMethods:
             raise QuantityColumnIsNotDigit(part, self.processor.part_quantity_column) from e
         return qty
 
-    def _get_part_name(self, part: AbstractPart) -> str:
+    def get_part_name(self, part: AbstractPart) -> str:
         """Returns the 'Part name' attribute of the Part."""
         if not self.processor.part_name_column:
-            raise AttrNotSetException('Processor must have the name of the "Part name" column set.')
+            raise AttrNotSetException("Part name")
         return getattr(part, self.processor.part_name_column)
 
     def _get_position_split(self, part: AbstractPart) -> list[str]:
         """ Returns Part position split."""
-        return self._get_part_position(part).split(self._get_pos_delimiter(part))
+        return self.get_part_position(part).split(self._get_pos_delimiter(part))
 
     def _get_parts_parent(self, part: AbstractPart) -> AbstractPart:
         """Returns the Part's parent."""
@@ -90,14 +90,14 @@ class ProcessorMethods:
 
     def _get_parent_by_id(self, part_id: str) -> AbstractPart:
         """Returns the Part's parent by its 'Position number'."""
-        parent = [part for part in self.processor.processed_part_list if self._get_part_position(part) == part_id][0]
+        parent = [part for part in self.processor.processed_part_list if self.get_part_position(part) == part_id][0]
         return parent
 
     @part_modifier
     def set_parent(self, part: AbstractPart):
         """Returns a list of each Part's parent 'position number'."""
         pos_delimiter = self._get_pos_delimiter(part)
-        position_split = self._get_part_position(part).split(pos_delimiter)
+        position_split = self.get_part_position(part).split(pos_delimiter)
         parents_count = len(position_split) - 1
         parents_id = [pos_delimiter.join(position_split[:(parent + 1)]) for parent in range(parents_count)]
         part.parent = parents_id
@@ -107,7 +107,7 @@ class ProcessorMethods:
         """Returns the 'Part number' of the Part's first parent."""
         parent = self._get_parts_parent(part)
         if parent:
-            parent_name = self._get_part_number(parent)
+            parent_name = self.get_part_number(parent)
         else:
             parent_name = self.processor.bom.main_assembly_name
         part.parent_assembly = parent_name
@@ -123,7 +123,7 @@ class ProcessorMethods:
         for item in self.processor.processed_part_list:
             has_child_len = len(self._get_position_split(item)) == child_len
             has_same_pos_split = self._get_position_split(item)[:part_len] == part_position_split
-            child_id.append(self._get_part_position(item)) if has_child_len and has_same_pos_split else None
+            child_id.append(self.get_part_position(item)) if has_child_len and has_same_pos_split else None
         part.child = child_id
         return child_id
 
@@ -133,8 +133,8 @@ class ProcessorMethods:
         parent_sets = []
         for instance in self.processor.processed_part_list:
             for parent in part.parent:
-                if self._get_part_position(instance) == parent:
-                    parent_sets.append(self._get_part_quantity(instance))
+                if self.get_part_position(instance) == parent:
+                    parent_sets.append(self.get_part_quantity(instance))
         sub_sets = math.prod(parent_sets)
         sets = sub_sets * self.processor.bom.main_assembly_sets
         part.sets = sets
@@ -143,7 +143,7 @@ class ProcessorMethods:
     @part_modifier
     def set_to_order(self, part: AbstractPart) -> int:
         """Returns the total quantity of the Part to order."""
-        part_quantity = self._get_part_quantity(part)
+        part_quantity = self.get_part_quantity(part)
         to_order = part_quantity * part.sets
         part.to_order = to_order
         return to_order
@@ -183,7 +183,7 @@ class ProcessorMethods:
         keywords = [keyword.strip(' ') for keyword in filtered_keywords]
         if keywords:
             is_part_production = any(
-                keyword in self._get_part_number(part) for keyword in keywords)
+                keyword in self.get_part_number(part) for keyword in keywords)
         part.is_production = is_part_production
         return is_part_production
 
@@ -217,7 +217,7 @@ class ProcessorMethods:
         filtered_keywords = list(filter(None, keywords_split))
         keywords = [keyword.strip(' ') for keyword in filtered_keywords]
         if keywords:
-            is_junk = any(f in (self._get_part_number(part) or self._get_part_name(part)) for f in keywords)
+            is_junk = any(f in (self.get_part_number(part) or self.get_part_name(part)) for f in keywords)
         part.is_junk_by_keywords = is_junk
         return is_junk
 
@@ -270,14 +270,14 @@ class ProcessorMethods:
         sub_bom = [item for item in part_list if len(item.parent) + 1 == child_len and
                    self._get_position_split(item)[:part_len] == self._get_position_split(part)]
         sub_bom = sorted(sub_bom, key=lambda word: ([parts_order.index(c) for c in word.type],
-                                                    self._get_part_number(word)), reverse=True)
+                                                    self.get_part_number(word)), reverse=True)
         return sub_bom
 
     def set_tree_sorting(self) -> None:
         """Converts BOM to a tree list."""
         part_list = self.processor.processed_part_list
         initial_bom_tree_list = [part for part in part_list if len(self._get_position_split(part)) == 1]
-        bom_tree_list = sorted(initial_bom_tree_list, key=lambda part: self._get_part_number(part), reverse=False)
+        bom_tree_list = sorted(initial_bom_tree_list, key=lambda part: self.get_part_number(part), reverse=False)
         last_generation = 20
         for generation in range(1, last_generation):
             for part in bom_tree_list:

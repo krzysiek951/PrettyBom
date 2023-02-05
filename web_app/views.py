@@ -6,7 +6,8 @@ from flask import session, render_template, flash, request, redirect, url_for, s
 from flask_mail import Message, Mail
 from werkzeug.utils import secure_filename
 
-from .models import DefaultBomManager, BomXlsxExporter, PartListCsvImporter, DefaultBomProcessor
+from .exceptions import DelimiterNotUnique, AttrNotSetException, QuantityColumnIsNotDigit
+from .models import DefaultBomManager, BomXlsxExporter, PartListCsvImporter, BomProcessor
 from .models.processor_director import FullFeatureProcessorDirector
 from .typing import *
 
@@ -91,19 +92,24 @@ def user_data():
             'normalized_columns': request.form.getlist('NORMALIZED_COLUMN'),
         }
 
-        bom_processor = DefaultBomProcessor(user_bom)
+        bom_processor = BomProcessor(user_bom)
         processor_director = FullFeatureProcessorDirector(bom_processor)
         bom_processor.set_attributes_from_kwargs(**processor_attributes)
-        processor_director.run()
+        try:
+            processor_director.run_processing()
 
-        invalid_position_value_parts = bom_processor.processor_validator.invalid_position_parts
-        invalid_quantity_value_parts = bom_processor.processor_validator.invalid_quantity_parts
-        if invalid_position_value_parts:
-            flash(f'Part position must be of integer type and use unique delimiter. Found '
-                  f'{len(invalid_position_value_parts)} invalid parts.')
-        if invalid_quantity_value_parts:
-            flash(f'Part quantity must be of integer type. Found '
-                  f'{len(invalid_quantity_value_parts)} invalid parts.')
+        except DelimiterNotUnique as e:
+            part_number = bom_processor.bom_modifiers.get_part_number(e.part)
+            part_name = bom_processor.bom_modifiers.get_part_name(e.part)
+            flash(f'Only one delimiter of the "Part position" is allowed. '
+                  f'Found not unique delimiter: "{e.delimiter}" while checking the following part: '
+                  f'{part_number} {part_name}.')
+
+        except AttrNotSetException as e:
+            flash(f'The name of the {e.attr_name} must be set.')
+
+        except QuantityColumnIsNotDigit:
+            flash('Unable to process the Part list - Quantity column contains values other than numbers.')
 
         if '_flashes' in session:
             return redirect(request.url)
