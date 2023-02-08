@@ -3,9 +3,8 @@ from __future__ import annotations
 import copy
 from typing import Union
 
-from .bom import AbstractBom
+from .bom import AbstractBom, PartsCollection
 from .bom_processor_methods import ProcessorMethods
-from .part import AbstractPart
 
 
 class BomProcessor:
@@ -13,8 +12,8 @@ class BomProcessor:
 
     def __init__(self, bom: AbstractBom):
         self.bom = bom
-        self.initial_part_list: list[AbstractPart] = []
-        self.processed_part_list: list[AbstractPart] = []
+        self.initial_part_list: PartsCollection | None = None
+        self.processed_part_list: PartsCollection | None = None
         self.processing_succeeded = False
         self.part_position_delimiter: str | None = None
         self.production_part_keywords: Union[list, str, None] = None
@@ -22,10 +21,6 @@ class BomProcessor:
         self.junk_part_empty_fields: Union[list, str, None] = None
         self.set_junk_for_purchased_nests: bool | None = True
         self.reverse_bom_sorting: bool = False
-        self.part_position_column: str = ''
-        self.part_quantity_column: str = ''
-        self.part_number_column: str = ''
-        self.part_name_column: str = ''
         self.normalized_columns: list | None = None
         self.parts_sorting: bool | None = None
         self.bom_modifiers = ProcessorMethods(self)

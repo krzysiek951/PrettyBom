@@ -1,6 +1,9 @@
-from typing import Optional
+from __future__ import annotations
 
-from ..models import AbstractBom
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..models import AbstractBom
 
 
 def get_first_imported_file(bom: AbstractBom) -> Optional[str]:

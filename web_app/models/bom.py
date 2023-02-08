@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+import pandas as pd
+
 from web_app.exceptions import InvalidPartSetsValue, ObjectNotFound, AttrNotSetException
 from web_app.models.part import AbstractPart, DefaultPart
+from web_app.models.parts_collection import PartsCollection
 from web_app.typing import ImportedBomSource, BomClassTypes
 
 
@@ -12,7 +15,7 @@ class AbstractBom(ABC):
     bom_type: BomClassTypes = None
 
     def __init__(self, main_assembly_name: str = '', main_assembly_sets: int = 0):
-        self.part_list: list[AbstractPart] = []
+        self.part_list: PartsCollection = PartsCollection()
         self.imported_bom_sources: list[ImportedBomSource] = []
         self.imported_bom_columns: list[str] = []
         self._main_assembly_sets: int = main_assembly_sets
@@ -57,7 +60,7 @@ class AbstractBom(ABC):
 
     def delete_all_parts(self) -> None:
         """Deletes all existing parts from Bill of Materials."""
-        self.part_list.clear()
+        self.part_list = PartsCollection()
 
     def get_part_count(self) -> int:
         """Returns the quantity of parts in Bill of Materials"""
@@ -66,9 +69,23 @@ class AbstractBom(ABC):
 
     def print_part_list(self) -> None:
         """Prints a list of Parts in the Bill of Materials"""
-        print("==== PART LIST ====")
-        for index, part in enumerate(self.part_list):
-            print(index, part.__dict__)
+        part_list = [part.__dict__ for part in self.part_list]
+        df = pd.DataFrame(part_list)
+        pd.set_option('display.max_rows', 100)
+        pd.set_option('display.max_columns', 50)
+        pd.set_option('display.width', 500)
+        print(f"==== PART LIST ====\n"
+              f"{df}")
+
+    def print_tree_part_list(self) -> None:
+        """Prints a tree list of Parts in the Bill of Materials."""
+        part_list = [part.__dict__ for part in self.part_list.get_tree_part_list()]
+        df = pd.DataFrame(part_list)
+        pd.set_option('display.max_rows', 100)
+        pd.set_option('display.max_columns', 50)
+        pd.set_option('display.width', 500)
+        print(f"==== PART LIST ====\n"
+              f"{df}")
 
 
 class DefaultBom(AbstractBom):
@@ -81,5 +98,5 @@ class DefaultBom(AbstractBom):
     def create_part(self, **kwargs) -> DefaultPart:
         """Creates a new Default Part within Bill of Materials."""
         part = DefaultPart(**kwargs)
-        self.part_list.append(part)
+        self.part_list.add_part(part)
         return part
