@@ -35,7 +35,7 @@ class BomXlsxExporter(AbstractBomExporter):
     """Class for exporting a part list to the xlsx file."""
 
     def _save(self, exported_columns: list, exports_directory: str, filename_without_extension: str):
-        df = pd.DataFrame(map(vars, self.bom.part_list), columns=exported_columns)
+        df = pd.DataFrame(map(vars, self.bom.part_list.get_tree_part_list()), columns=exported_columns)
         df.columns = df.columns.str.replace('_', ' ').str.capitalize()
 
         self.exported_filename = f'{filename_without_extension}.xlsx'
