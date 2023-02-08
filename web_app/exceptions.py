@@ -18,7 +18,7 @@ class ObjectNotFound(Exception):
 class AttrNotSetException(Exception):
     def __init__(self, attr_name):
         self.attr_name = attr_name
-        self.msg = f'Processor must have the name of the {attr_name} column set.'
+        self.msg = f'The name of the {attr_name} column must be set.'
         super().__init__(self.msg)
 
 
@@ -31,7 +31,7 @@ class QuantityColumnIsNotDigit(Exception):
 
 
 class DelimiterNotUnique(Exception):
-    def __init__(self, current_set_delimiter, delimiter, part=None):
+    def __init__(self, part, delimiter, current_set_delimiter=None):
         self.current_set_delimiter = current_set_delimiter
         self.part = part
         self.delimiter = delimiter
