@@ -79,19 +79,24 @@ def user_data():
         for key, value in bom_attributes.items():
             setattr(user_bom, key, value)
 
+        part_attributes = {
+            '_position_column': required(request.form['PART_POSITION_COLUMN'],
+                                         'Please select part position column.'),
+            '_quantity_column': required(request.form['PART_QUANTITY_COLUMN'],
+                                         'Please select part quantity column.'),
+            '_number_column': required(request.form['PART_NUMBER_COLUMN'], 'Please select part number column.'),
+            '_name_column': required(request.form['PART_NAME_COLUMN'], 'Please select part number column.'),
+        }
+        for part in user_bom.part_list:
+            for key, value in part_attributes.items():
+                setattr(part, key, value)
+
         processor_attributes = {
             'production_part_keywords': request.form['PRODUCTION_PART_KEYWORDS'],
-            'part_position_column': required(request.form['PART_POSITION_COLUMN'],
-                                             'Please select part position column.'),
-            'part_quantity_column': required(request.form['PART_QUANTITY_COLUMN'],
-                                             'Please select part quantity column.'),
-            'part_number_column': required(request.form['PART_NUMBER_COLUMN'], 'Please select part number column.'),
-            'part_name_column': required(request.form['PART_NAME_COLUMN'], 'Please select part number column.'),
             'junk_part_empty_fields': request.form.getlist('JUNK_PART_EMPTY_FIELDS'),
             'junk_part_keywords': request.form['JUNK_PART_KEYWORDS'],
             'normalized_columns': request.form.getlist('NORMALIZED_COLUMN'),
         }
-
         bom_processor = BomProcessor(user_bom)
         processor_director = FullFeatureProcessorDirector(bom_processor)
         bom_processor.set_attributes_from_kwargs(**processor_attributes)
@@ -100,7 +105,7 @@ def user_data():
 
         except DelimiterNotUnique as e:
             part_number = bom_processor.bom_modifiers.get_part_number(e.part)
-            part_name = bom_processor.bom_modifiers.get_part_name(e.part)
+            part_name = bom_processor.bom_modifiers.name(e.part)
             flash(f'Only one delimiter of the "Part position" is allowed. '
                   f'Found not unique delimiter: "{e.delimiter}" while checking the following part: '
                   f'{part_number} {part_name}.')
